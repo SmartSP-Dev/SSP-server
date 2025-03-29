@@ -72,17 +72,17 @@ jobs:
           script: |
             #!/bin/bash
             echo "Pulling latest Docker image..."
-            docker pull "${DOCKER_IMAGE_NAME}:latest"
+            docker pull ${DOCKER_IMAGE_NAME}:latest
             echo "Stopping and removing old container..."
             docker rm -f opensource_server || true
             echo "Starting new container..."
             docker run -d --name opensource_server -p 8080:8080 \
-            -e KAKAO_REDIRECT_URI="${KAKAO_REDIRECT_URI}" \
-            -e KAKAO_API_KEY="${KAKAO_API_KEY}" \
-            -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
-            -e DATASOURCE_URL="${DATASOURCE_URL}" \
-            -e DATASOURCE_USERNAME="${DATASOURCE_USERNAME}" \
-            -e DATASOURCE_PASSWORD="${DATASOURCE_PASSWORD}" \
-            "${DOCKER_IMAGE_NAME}:latest"
+            -e KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI} \
+            -e KAKAO_API_KEY=${KAKAO_API_KEY} \
+            -e JWT_SECRET_KEY=${JWT_SECRET_KEY} \
+            -e DATASOURCE_URL=${DATASOURCE_URL} \
+            -e DATASOURCE_USERNAME=${DATASOURCE_USERNAME} \
+            -e DATASOURCE_PASSWORD=${DATASOURCE_PASSWORD} \
+            ${DOCKER_IMAGE_NAME}:latest
             echo "Deployment complete."
             exit 0
