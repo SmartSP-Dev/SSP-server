@@ -73,6 +73,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          request_pty: true
           script: |
             #!/bin/bash
             echo "Stopping existing application..."
@@ -80,6 +81,7 @@ jobs:
             sleep 5
             echo "Starting new application..."
             nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
+            disown
             sleep 5
             echo "Deployment complete."
             exit 0
