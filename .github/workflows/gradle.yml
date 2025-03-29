@@ -1,67 +1,73 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
-name: Java CI with Gradle
+name: Build and Deploy to AWS CodeDeploy
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
+    env:
+      KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+      KAKAO_API_KEY: ${{ secrets.KAKAO_API_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
+      DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
+      DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
+      - name: Checkout source code
+        uses: actions/checkout@v3
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
 
-    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-    #
-    # - name: Setup Gradle
-    #   uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-    #   with:
-    #     gradle-version: '8.9'
-    #
-    # - name: Build with Gradle 8.9
-    #   run: gradle build
+      - name: Build with Gradle
+        run: ./gradlew clean build
 
-  dependency-submission:
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-jar
+          path: build/libs/*.jar
 
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
+    needs: build
+    env:
+      KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+      KAKAO_API_KEY: ${{ secrets.KAKAO_API_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
+      DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
+      DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: app-jar
+          path: build/libs
 
-    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
-    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload artifact to S3
+        run: |
+          aws s3 cp build/libs/*.jar s3://${{ secrets.S3_BUCKET_NAME }}/app.jar
+
+      - name: Deploy to EC2 via AWS CodeDeploy (Amazon Linux)
+        run: |
+          aws deploy create-deployment \
+            --application-name "${{ secrets.CODEDEPLOY_APPLICATION_NAME }}" \
+            --deployment-group-name "${{ secrets.CODEDEPLOY_DEPLOYMENT_GROUP }}" \
+            --s3-location bucket=${{ secrets.S3_BUCKET_NAME }},key=app.jar,bundleType=jar
