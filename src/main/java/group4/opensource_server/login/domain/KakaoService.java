@@ -31,13 +31,13 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
-    public LoginResponseDto kakaoLogin(String code, String currentDomain) {
+    public LoginResponseDto kakaoLogin(String code) {
 
         // Access Token 요청
-        String accessTokenFromKakao = getAccessToken(code, currentDomain);
+        String accessTokenFromKakao = getAccessToken(code);
 
         // Kakao 사용자 정보 요청
-        KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getUserInfo(accessTokenFromKakao);
+        KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getKakaoUserInfo(accessTokenFromKakao);
 
         // 기존 사용자 조회 혹은 신규 회원가입
         User user = userRepository.findByEmail(kakaoUserInfoResponseDto.getKakaoAccount().getEmail())
@@ -59,7 +59,7 @@ public class KakaoService {
                 .build();
     }
 
-    public String getAccessToken(String code, String currentDomain) {
+    public String getAccessToken(String code) {
         KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create("https://kauth.kakao.com").post()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
@@ -78,8 +78,7 @@ public class KakaoService {
         return kakaoTokenResponseDto.getAccessToken();
     }
 
-    public KakaoUserInfoResponseDto getUserInfo(String accessToken) {
-
+    public KakaoUserInfoResponseDto getKakaoUserInfo(String accessToken) {
         KakaoUserInfoResponseDto userInfo = WebClient.create("https://kapi.kakao.com")
                 .get()
                 .uri(uriBuilder -> uriBuilder
@@ -96,5 +95,4 @@ public class KakaoService {
 
         return userInfo;
     }
-
 }

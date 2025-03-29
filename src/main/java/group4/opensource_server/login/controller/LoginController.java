@@ -22,10 +22,9 @@ public class LoginController {
 
     @ResponseBody
     @GetMapping("/login/kakao")
-    public ResponseEntity<LoginResponseDto> kakaoLogin(@RequestParam String code, HttpServletRequest request){
+    public ResponseEntity<LoginResponseDto> kakaoLogin(@RequestParam String code){
         try{
-            String currentDomain = request.getServerName();
-            return ResponseEntity.ok(kakaoService.kakaoLogin(code, currentDomain));
+            return ResponseEntity.ok(kakaoService.kakaoLogin(code));
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Item Not Found");
         }
