@@ -1,0 +1,27 @@
+package group4.opensource_server.user.dto;
+
+import group4.opensource_server.user.domain.User;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserResponseDto {
+    private Integer userId;
+    private String email;
+    private String nickname;
+    private String profileImage;
+
+    public static UserResponseDto from(User user) {
+        return UserResponseDto.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .profileImage(user.getProfileImage())
+                .build();
+    }
+}

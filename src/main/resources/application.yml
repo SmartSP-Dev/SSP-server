@@ -1,0 +1,20 @@
+kakao:
+    redirect_uri: http://localhost:8080/auth/login/kakao
+    api_key: ${KAKAO_API_KEY}
+
+jwt:
+  secret_key: f6b52d55e1f34ae244b812a352098ab9e0f9c3f42817d8a28997bc74d78c54b6
+
+spring:
+  application:
+    name: opensource_server
+  jpa:
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
