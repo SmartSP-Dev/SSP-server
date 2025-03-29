@@ -28,7 +28,6 @@ public class KakaoService {
     private String kakaoRedirectUri;
 
     private final UserService userService;
-    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
     public LoginResponseDto kakaoLogin(String code) {
@@ -40,9 +39,8 @@ public class KakaoService {
         KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getKakaoUserInfo(accessTokenFromKakao);
 
         // 기존 사용자 조회 혹은 신규 회원가입
-        User user = userRepository.findByEmail(kakaoUserInfoResponseDto.getKakaoAccount().getEmail())
-                .orElseGet(() -> {
-                    return userRepository.save(User.builder()
+        User user = userService.getUserByEmail(kakaoUserInfoResponseDto.getKakaoAccount().getEmail()).orElseGet(() -> {
+                    return userService.createUser(User.builder()
                             .profileImage(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getThumbnailImageUrl())
                             .email(kakaoUserInfoResponseDto.getKakaoAccount().getEmail())
                             .nickname(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getNickname())

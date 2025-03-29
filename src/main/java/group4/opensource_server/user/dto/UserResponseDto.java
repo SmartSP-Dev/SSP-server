@@ -15,6 +15,8 @@ public class UserResponseDto {
     private String email;
     private String nickname;
     private String profileImage;
+    private String provider;
+    private String everytimeUrl;
 
     public static UserResponseDto from(User user) {
         return UserResponseDto.builder()
@@ -22,6 +24,8 @@ public class UserResponseDto {
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .profileImage(user.getProfileImage())
+                .provider(user.getProvider())
+                .everytimeUrl(user.getEverytimeUrl())
                 .build();
     }
 }
