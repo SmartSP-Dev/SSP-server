@@ -81,3 +81,4 @@ jobs:
             echo "Starting new application..."
             nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
             echo "Deployment complete."
+            exit 0
