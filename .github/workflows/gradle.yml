@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Upload build artifact
-        uses: actions/checkout@v4
+        uses: actions/upload-artifact@v3
         with:
           name: app-jar
           path: build/libs/*.jar
@@ -51,7 +51,7 @@ jobs:
       EC2_USER: ${{ secrets.EC2_USER }}
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: app-jar
           path: build/libs
