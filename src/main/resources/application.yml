@@ -1,9 +1,9 @@
 kakao:
-    redirect_uri: http://localhost:8080/auth/login/kakao
+    redirect_uri: ${KAKAO_REDIRECT_URI}
     api_key: ${KAKAO_API_KEY}
 
 jwt:
-  secret_key: f6b52d55e1f34ae244b812a352098ab9e0f9c3f42817d8a28997bc74d78c54b6
+  secret_key: ${JWT_SECRET_KEY}
 
 spring:
   application:
