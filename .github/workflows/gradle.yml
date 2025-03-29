@@ -51,7 +51,7 @@ jobs:
       EC2_USER: ${{ secrets.EC2_USER }}
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: app-jar
           path: build/libs
