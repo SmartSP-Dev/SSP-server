@@ -1,4 +1,4 @@
-name: Build and Deploy to EC2
+name: Build and Deploy to EC2 via Docker
 
 on:
   push:
@@ -15,6 +15,9 @@ jobs:
       DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
       DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
       DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
@@ -31,42 +34,26 @@ jobs:
       - name: Build with Gradle (skip tests)
         run: ./gradlew clean build -x test
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Build Docker image and push to Docker Hub
+        uses: docker/build-push-action@v3
         with:
-          name: app-jar
-          path: build/libs/*.jar
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+        env:
+          DOCKER_BUILDKIT: 1
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     env:
-      KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
-      KAKAO_API_KEY: ${{ secrets.KAKAO_API_KEY }}
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
-      DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-      DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
       EC2_HOST: ${{ secrets.EC2_HOST }}
       EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+      DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-jar
-          path: build/libs
-
-      - name: Copy artifact to EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          source: "build/libs/*.jar"
-          target: "/home/${{ secrets.EC2_USER }}/app.jar"
-
-      - name: Restart application on EC2
+      - name: Deploy Docker image on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -76,12 +63,11 @@ jobs:
           request_pty: true
           script: |
             #!/bin/bash
-            echo "Stopping existing application..."
-            pkill -f 'java -jar' || true
-            sleep 5
-            echo "Starting new application..."
-            nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
-            disown
-            sleep 5
+            echo "Pulling latest Docker image..."
+            docker pull $DOCKER_IMAGE_NAME:latest
+            echo "Stopping and removing old container..."
+            docker rm -f opensource_server || true
+            echo "Starting new container..."
+            docker run -d --name opensource_server -p 8080:8080 $DOCKER_IMAGE_NAME:latest
             echo "Deployment complete."
             exit 0
