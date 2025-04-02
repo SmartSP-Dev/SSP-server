@@ -20,3 +20,12 @@ spring:
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: ${PORT}
+  ssl:
+    enabled: ${SSL_ENABLED}
+    key-store:classpath: keystore.p12
+    key-store-password: ${SSL_KEY}
+    key-store-type: PKCS12
+    key-alias: tomcat

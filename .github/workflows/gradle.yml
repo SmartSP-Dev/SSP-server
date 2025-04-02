@@ -83,6 +83,9 @@ jobs:
             -e DATASOURCE_URL="${{secrets.DATASOURCE_URL}}" \
             -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
             -e DATASOURCE_PASSWORD="${{secrets.DATASOURCE_PASSWORD}}" \
+            -e SSL_ENABLED=true \
+            -e PORT=${{secrets.PORT}} \
+            -e SSL_KEY=${{secrets.SSL_KEY}} \
              ${{secrets.DOCKER_IMAGE_NAME}}:latest
             echo "Deployment complete."
             exit 0
