@@ -5,7 +5,6 @@ import group4.opensource_server.login.dto.KakaoTokenResponseDto;
 import group4.opensource_server.login.dto.KakaoUserInfoResponseDto;
 import group4.opensource_server.login.dto.LoginResponseDto;
 import group4.opensource_server.user.domain.User;
-import group4.opensource_server.user.domain.UserRepository;
 import group4.opensource_server.user.domain.UserService;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.Getter;

@@ -2,8 +2,6 @@ package group4.opensource_server.login.controller;
 
 import group4.opensource_server.login.domain.KakaoService;
 import group4.opensource_server.login.dto.LoginResponseDto;
-import group4.opensource_server.user.domain.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +16,6 @@ import java.util.NoSuchElementException;
 @RequestMapping("/auth")
 public class LoginController {
     private final KakaoService kakaoService;
-    private final UserService userService;
 
     @ResponseBody
     @GetMapping("/login/kakao")

@@ -3,7 +3,6 @@ package group4.opensource_server.user.controller;
 import group4.opensource_server.user.domain.UserService;
 import group4.opensource_server.user.dto.UserResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
