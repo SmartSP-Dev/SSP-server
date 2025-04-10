@@ -38,7 +38,6 @@ public class KakaoService {
                     return userService.createUser(User.builder()
                             .profileImage(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getThumbnailImageUrl())
                             .email(kakaoUserInfoResponseDto.getKakaoAccount().getEmail())
-                            .nickname(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getNickname())
                             .provider("kakao")
                             .build());
                 });

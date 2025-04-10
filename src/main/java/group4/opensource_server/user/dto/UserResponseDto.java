@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class UserResponseDto {
     private Integer userId;
     private String email;
-    private String nickname;
+    private String name;
     private String profileImage;
     private String provider;
     private String everytimeUrl;
@@ -21,7 +21,7 @@ public class UserResponseDto {
     public static UserResponseDto from(User user) {
         return UserResponseDto.builder()
                 .userId(user.getId())
-                .nickname(user.getNickname())
+                .name(user.getName())
                 .email(user.getEmail())
                 .profileImage(user.getProfileImage())
                 .provider(user.getProvider())

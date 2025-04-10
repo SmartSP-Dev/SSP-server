@@ -16,12 +16,17 @@ public class User {
     @Column(name = "user_id", nullable = false)
     private Integer id;
 
-
     @Column(name = "email", length=100, nullable = false, unique = true)
     private String email;
 
-    @Column(name = "nickname", length = 100, nullable = false, unique = true)
-    private String nickname;
+    @Column(name = "name", length = 100)
+    private String name;
+
+    @Column(name = "university", length = 100)
+    private String university;
+
+    @Column(name = "department", length = 100)
+    private String department;
 
     @Column(name = "profile_image", length = 1000, nullable = true)
     private String profileImage;
@@ -33,9 +38,8 @@ public class User {
     private String provider;
 
     @Builder
-    public User(String email, String nickname, String profileImage, String provider) {
+    public User(String email, String profileImage, String provider) {
         this.email = email;
-        this.nickname = nickname;
         this.profileImage = profileImage;
         this.provider = provider;
     }
