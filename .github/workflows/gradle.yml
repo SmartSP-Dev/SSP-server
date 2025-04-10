@@ -80,6 +80,11 @@ jobs:
             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
             -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
             -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
+            -e APPLE_TEAM_ID="${{secrets.APPLE_TEAM_ID}}" \
+            -e APPLE_KEY_ID="${{secrets.APPLE_KEY_ID}}" \
+            -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
+            -e APPLE_REDIRECT_URI="${{secrets.APPLE_REDIRECT_URI}}" 
+            -e APPLE_PRIVATE_KEY="${{secrets.APPLE_PRIVATE_KEY}}" \
             -e JWT_SECRET_KEY="${{secrets.JWT_SECRET_KEY}}" \
             -e DATASOURCE_URL="${{secrets.DATASOURCE_URL}}" \
             -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
