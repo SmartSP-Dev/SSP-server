@@ -37,9 +37,8 @@ public class TestController {
         return "kakaoCallback";  // templates/kakaoCallback.html
     }
 
-
     @GetMapping("/auth/login/apple/callback")
-    public String appleCallback(Model model, @RequestParam String code) {
+    public String appleCallback(@RequestParam String code,Model model) {
         model.addAttribute("authCode", code);
         return "appleCallback"; // templates/appleCallback.html
     }
