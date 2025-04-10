@@ -27,8 +27,7 @@
         response_type: 'code',
         response_mode: 'query',  // 수정된 부분
         client_id: [[${appleClientId}]],
-        redirect_uri: 'https://leeyj.xyz/auth/login/apple/callback',
-        scope: 'email name'  // 'name'과 'email' 요청 시 이 설정이 필요
+        redirect_uri: 'https://leeyj.xyz/auth/login/apple/callback'
     });
 
     document.getElementById('apple-login-btn').href =
