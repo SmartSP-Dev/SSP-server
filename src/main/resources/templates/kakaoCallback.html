@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>카카오 로그인 처리 중...</title>
+</head>
+<body>
+<h2>🟡 카카오 로그인 처리 중입니다...</h2>
+
+<script th:inline="javascript">
+    const code = /*[[${authCode}]]*/ "";
+
+    fetch("/auth/login/kakao", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ code })
+    })
+        .then(res => res.json())
+        .then(data => {
+            console.log("로그인 성공!", data);
+            alert("카카오 로그인 성공! 콘솔 확인");
+        })
+        .catch(err => {
+            console.error("카카오 로그인 실패", err);
+            alert("로그인 실패!");
+        });
+</script>
+</body>
+</html>

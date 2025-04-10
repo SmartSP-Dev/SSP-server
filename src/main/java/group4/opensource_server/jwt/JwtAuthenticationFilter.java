@@ -28,6 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String uri = request.getRequestURI();
+
+        if (uri.equals("/") ||
+                uri.startsWith("/auth/") ||
+                uri.startsWith("/css/") ||
+                uri.startsWith("/js/") ||
+                uri.startsWith("/images/") ||
+                uri.equals("/favicon.ico") ||
+                uri.equals("/error")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

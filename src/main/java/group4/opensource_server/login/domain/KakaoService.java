@@ -6,7 +6,6 @@ import group4.opensource_server.login.dto.KakaoUserInfoResponseDto;
 import group4.opensource_server.login.dto.LoginResponseDto;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserService;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,13 +30,10 @@ public class KakaoService {
 
     public LoginResponseDto kakaoLogin(String code) {
 
-        // Access Token 요청
         String accessTokenFromKakao = getAccessToken(code);
 
-        // Kakao 사용자 정보 요청
-        KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getKakaoUserInfo(accessTokenFromKakao);
+         KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getKakaoUserInfo(accessTokenFromKakao);
 
-        // 기존 사용자 조회 혹은 신규 회원가입
         User user = userService.getUserByEmail(kakaoUserInfoResponseDto.getKakaoAccount().getEmail()).orElseGet(() -> {
                     return userService.createUser(User.builder()
                             .profileImage(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getThumbnailImageUrl())
@@ -66,7 +62,7 @@ public class KakaoService {
                         .queryParam("redirect_uri", kakaoRedirectUri)
                         .queryParam("code", code)
                         .build(true))
-                .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
+                .header(HttpHeaders.CONTENT_TYPE,	"application/x-www-form-urlencoded")
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
@@ -83,7 +79,7 @@ public class KakaoService {
                         .path("/v2/user/me")
                         .build(true))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // access token 인가
-                .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
+                .header(HttpHeaders.CONTENT_TYPE, 	"application/x-www-form-urlencoded")
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))

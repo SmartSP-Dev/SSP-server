@@ -25,9 +25,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
+                .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable()) // 🔥 Spring Security 기본 로그인폼 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                                "/",                         // index.html 경로
+                                "/auth/**",                 // 로그인 API
+                                "/css/**", "/js/**",        // 정적 자원
+                                "/images/**", "/favicon.ico",
+                                "/webjars/**", "/error"     // 필수 자원
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -37,6 +45,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
