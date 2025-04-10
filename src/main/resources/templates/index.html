@@ -26,7 +26,7 @@
     const appleParams = new URLSearchParams({
         response_type: 'code',
         response_mode: 'query',
-        client_id: `[[${appleClientId}]]`,
+        client_id: [[${appleClientId}]],
         redirect_uri: 'https://leeyj.xyz/auth/login/apple/callback',
         scope: 'email name'
     });
