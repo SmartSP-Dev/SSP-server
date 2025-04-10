@@ -20,7 +20,7 @@
         .then(res => res.json())
         .then(data => {
             console.log("로그인 성공!", data);
-            alert("로그인 성공! 콘솔 확인");
+            alert(`애플 로그인 성공!\naccess token: ${data.accessToken}\nrefresh token: ${data.refreshToken}`);
         })
         .catch(err => {
             console.error("로그인 실패", err);
