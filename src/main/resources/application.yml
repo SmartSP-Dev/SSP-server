@@ -29,3 +29,10 @@ server:
     key-store-password: ${SSL_KEY}
     key-store-type: PKCS12
     key-alias: tomcat
+
+apple:
+  team-id: ${APPLE_TEAM_ID}
+  key-id: ${APPLE_KEY_ID}
+  client-id: ${APPLE_CLIENT_ID}
+  redirect-uri: ${APPLE_REDIRECT_URI}
+  private-key: ${APPLE_PRIVATE_KEY}
