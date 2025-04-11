@@ -20,8 +20,7 @@ public class UserService {
     @Transactional
     public User updateUser(String email, UserUpdateRequestDto userUpdateRequestDto) {
         User user=userRepository.findByEmail(email).orElseThrow( ()-> new UserNotFoundException("없는 유저입니다.") );
-        user.update(userUpdateRequestDto);
-        return userRepository.save(user);
+        return user.update(userUpdateRequestDto);
     }
 
     @Transactional

@@ -24,10 +24,9 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public UserResponseDto updateCurrentUser(@AuthenticationPrincipal UserDetails userDetails, UserUpdateRequestDto userUpdateRequestDto){
+    public UserResponseDto updateCurrentUser(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserUpdateRequestDto userUpdateRequestDto){
         return UserResponseDto.from(
                 userService.updateUser(userDetails.getUsername(), userUpdateRequestDto));
-
     }
 
     @DeleteMapping("/me")
