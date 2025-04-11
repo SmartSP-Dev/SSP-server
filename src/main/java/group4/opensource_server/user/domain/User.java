@@ -1,14 +1,17 @@
 package group4.opensource_server.user.domain;
 
 
+import group4.opensource_server.user.dto.UserUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
 @Getter
+@Setter
 @NoArgsConstructor
 public class User {
     @Id
@@ -36,6 +39,15 @@ public class User {
 
     @Column(name = "provider")
     private String provider;
+
+    public User update(UserUpdateRequestDto userUpdateRequestDto){
+        if(userUpdateRequestDto.getName() != null) this.name = userUpdateRequestDto.getName();
+        if(userUpdateRequestDto.getUniversity() != null) this.university = userUpdateRequestDto.getUniversity();
+        if(userUpdateRequestDto.getDepartment() != null) this.department = userUpdateRequestDto.getDepartment();
+        if(userUpdateRequestDto.getProfileImage() != null) this.profileImage = userUpdateRequestDto.getProfileImage();
+        if(userUpdateRequestDto.getEverytimeUrl() != null) this.everytimeUrl = userUpdateRequestDto.getEverytimeUrl();
+        return this;
+    }
 
     @Builder
     public User(String email, String profileImage, String provider) {

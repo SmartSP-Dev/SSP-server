@@ -23,8 +23,7 @@ public class LoginController {
     @PostMapping("/login/kakao")
     public ResponseEntity<LoginResponseDto> kakaoLogin(@RequestBody Map<String, String> body){
         try{
-            String code = body.get("code");
-            return ResponseEntity.ok(kakaoService.kakaoLogin(code));
+            return ResponseEntity.ok(kakaoService.kakaoLogin(body.get("code")));
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Item Not Found");
         }
@@ -33,8 +32,7 @@ public class LoginController {
     @PostMapping("/login/apple")
     public ResponseEntity<LoginResponseDto> appleLogin(@RequestBody Map<String, String> body) {
         try{
-            String code = body.get("code");
-            return ResponseEntity.ok(appleService.appleLogin(code));
+            return ResponseEntity.ok(appleService.appleLogin(body.get("code")));
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Item Not Found");
         }
