@@ -1,12 +1,16 @@
 package group4.opensource_server.user.domain;
 
 
+import group4.opensource_server.study.domain.Study;
 import group4.opensource_server.user.dto.UserUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -39,6 +43,9 @@ public class User {
 
     @Column(name = "provider")
     private String provider;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Study> studyList = new ArrayList<>();
 
     public User update(UserUpdateRequestDto userUpdateRequestDto){
         if(userUpdateRequestDto.getName() != null) this.name = userUpdateRequestDto.getName();

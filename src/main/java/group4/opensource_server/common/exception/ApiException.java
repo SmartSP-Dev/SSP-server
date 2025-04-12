@@ -1,4 +1,4 @@
-package group4.opensource_server.common;
+package group4.opensource_server.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
