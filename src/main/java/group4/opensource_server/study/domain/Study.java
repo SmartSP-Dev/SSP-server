@@ -1,5 +1,6 @@
 package group4.opensource_server.study.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import group4.opensource_server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;

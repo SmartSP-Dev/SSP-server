@@ -2,11 +2,9 @@ package group4.opensource_server.study.controller;
 
 import group4.opensource_server.study.domain.Study;
 import group4.opensource_server.study.domain.StudyRecord;
+import group4.opensource_server.study.domain.StudyRecordRepository;
 import group4.opensource_server.study.domain.StudyService;
-import group4.opensource_server.study.dto.StudyRecordRequestDto;
-import group4.opensource_server.study.dto.StudyRequestDto;
-import group4.opensource_server.study.dto.StudyResponseDto;
-import group4.opensource_server.study.dto.StudyUpdateRequestDto;
+import group4.opensource_server.study.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,11 +29,9 @@ public class StudyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudyResponseDto> getStudy(@PathVariable Integer id) {
-        Study study = studyService.getStudy(id);
-        return ResponseEntity.ok(new StudyResponseDto(study));
+    public ResponseEntity<List<StudyDataResponseDto>> getStudy(@PathVariable Integer id, @RequestParam String range) {
+        return ResponseEntity.ok(studyService.getStudyData(id, range));
     }
-
 
     @GetMapping
     public ResponseEntity<List<StudyResponseDto>> getAllStudies() {
@@ -67,8 +63,7 @@ public class StudyController {
     }
 
     @PostMapping("/records")
-    public ResponseEntity<StudyRecord> createRecord(@RequestBody StudyRecordRequestDto studyRecordRequestDto) {
-        StudyRecord record = studyService.createStudyRecord(studyRecordRequestDto);
-        return ResponseEntity.ok(record);
+    public ResponseEntity<StudyDataResponseDto> createRecord(@RequestBody StudyRecordRequestDto studyRecordRequestDto) {
+        return ResponseEntity.ok(studyService.createStudyRecord(studyRecordRequestDto));
     }
 }

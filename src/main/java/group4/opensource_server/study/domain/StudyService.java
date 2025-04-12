@@ -1,8 +1,7 @@
 package group4.opensource_server.study.domain;
 
-import group4.opensource_server.study.dto.StudyRecordRequestDto;
-import group4.opensource_server.study.dto.StudyRequestDto;
-import group4.opensource_server.study.dto.StudyUpdateRequestDto;
+import group4.opensource_server.study.dto.*;
+import group4.opensource_server.study.exception.StudyNotFoundException;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
 import group4.opensource_server.user.exception.UserNotFoundException;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -31,11 +31,24 @@ public class StudyService {
 
     public Study getStudy(Integer id) {
         return studyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디입니다."));
+                .orElseThrow(() -> new StudyNotFoundException("존재하지 않는 스터디입니다."));
     }
 
     public List<Study> getAllStudies() {
         return studyRepository.findAll();
+    }
+
+    public List<StudyDataResponseDto> getStudyData(Integer studyId, String range) {
+        LocalDate fromDate = switch (range.toLowerCase()) {
+            case "week" -> LocalDate.now().minusDays(6);
+            case "month" -> LocalDate.now().minusDays(29);
+            case "all" -> LocalDate.of(2000, 1, 1);
+            default ->  throw new IllegalArgumentException("invalid range: " + range);
+        };
+
+        return studyRecordRepository.getStudyData(studyId, fromDate).stream()
+                .map(s -> new StudyDataResponseDto(s.getDate(), s.getTotalTime()))
+                .toList();
     }
 
     public List<Study> searchBySubject(String subject) {
@@ -54,14 +67,18 @@ public class StudyService {
     }
 
     @Transactional
-    public StudyRecord createStudyRecord(StudyRecordRequestDto studyRecordRequestDto) {
+    public StudyDataResponseDto createStudyRecord(StudyRecordRequestDto studyRecordRequestDto) {
         Study study = studyRepository.findById(studyRecordRequestDto.getStudyId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디입니다."));
+                .orElseThrow(() -> new StudyNotFoundException("존재하지 않는 스터디입니다."));
 
-        return studyRecordRepository.save(StudyRecord.builder()
+        StudyRecord studyRecord=studyRecordRepository.save(StudyRecord.builder()
                 .study(study)
                 .date(studyRecordRequestDto.getDate())
                 .time(studyRecordRequestDto.getTime())
                 .build());
+        return StudyDataResponseDto.builder()
+                .date(studyRecord.getDate())
+                .time(studyRecord.getTime().longValue())
+                .build();
     }
 }
