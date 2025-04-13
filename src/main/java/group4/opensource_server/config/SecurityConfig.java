@@ -34,7 +34,8 @@ public class SecurityConfig {
                                 "/auth/**",                 // 로그인 API
                                 "/css/**", "/js/**",        // 정적 자원
                                 "/images/**", "/favicon.ico",
-                                "/webjars/**", "/error"     // 필수 자원
+                                "/webjars/**", "/error",     // 필수 자원
+                                "/calendar/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
