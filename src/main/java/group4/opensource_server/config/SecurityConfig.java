@@ -35,7 +35,10 @@ public class SecurityConfig {
                                 "/css/**", "/js/**",        // 정적 자원
                                 "/images/**", "/favicon.ico",
                                 "/webjars/**", "/error",     // 필수 자원
-                                "/calendar/**"
+                                "/calendar/**",
+                                "/files/upload",           // 파일 업로드 부분을 임시로 열어놓았습니다
+                                "/uploadSuccess",
+                                "/uploadFailure"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

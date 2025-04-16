@@ -42,8 +42,30 @@ dependencies {
     implementation 'org.seleniumhq.selenium:selenium-java:4.20.0'
     //WebDriverManager
     implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
+
+    // test_ljj
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // tesseract_ljj
+    implementation 'net.sourceforge.tess4j:tess4j:5.13.0'
+    implementation 'org.bytedeco:javacv-platform:1.5.10'
+
+    // pdfbox_ljj
+    implementation 'org.apache.pdfbox:pdfbox:3.0.4'
+
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    // test_ljj
+    systemProperty "jna.library.path", "/opt/homebrew/opt/tesseract/lib"
+}
+
+
+// tesseract_ljj
+tasks.withType(JavaExec) {
+    jvmArgs "-Djava.library.path=/opt/homebrew/lib"
 }
