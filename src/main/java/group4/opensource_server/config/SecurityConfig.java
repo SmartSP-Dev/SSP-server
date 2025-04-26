@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 "/calendar/**",
                                 "/files/upload",           // 파일 업로드 부분을 임시로 열어놓았습니다
                                 "/uploadSuccess",
-                                "/uploadFailure"
+                                "/uploadFailure",
+                                "/returnOCRResult"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

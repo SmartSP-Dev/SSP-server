@@ -23,41 +23,54 @@ public class OCRService {
         tesseract.setOcrEngineMode(1);  // OCR 엔진 모드 설정
     }
 
-    public String ImageToText(File file) {
+    public List<String> ImageToText(File file) {
+        List<String> ocrList = new ArrayList<String>();
+
         try {
             // File을 BufferedImage로 변환
             BufferedImage image = ImageIO.read(file);
 
             if (image == null) {
-                return "Failed to read image from the file.";
+                ocrList.add("Failed to read image from the file.");
+
+                return ocrList;
             }
 
             // Tesseract로 OCR 수행
             String content = tesseract.doOCR(image);
+            ocrList.add(content);
 
-            return content;
+            return ocrList;
         } catch (IOException | TesseractException e) {
             e.printStackTrace();
-            return "Error processing the image: " + e.getMessage();
+            ocrList.add("Error processing the image: " + e.getMessage());
+            return ocrList;
         }
     }
 
-    public String BinaryToText(byte[] bytes) {
+    public List<String> BinaryToText(byte[] bytes) {
+        List<String> ocrList = new ArrayList<>();
+
         try {
             // byte[]를 BufferedImage로 변환
             BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
 
             if (image == null) {
-                return "Failed to read image from the byte array.";
+                ocrList.add("Failed to read image from the byte array.");
+
+                return ocrList;
             }
 
             // Tesseract로 OCR 수행
             String content = tesseract.doOCR(image);
+            ocrList.add(content);
 
-            return content;
+            return ocrList;
         } catch (IOException | TesseractException e) {
             e.printStackTrace();
-            return "Error processing the image: " + e.getMessage();
+            ocrList.add("Error processing the image: " + e.getMessage());
+
+            return ocrList;
         }
     }
 }
