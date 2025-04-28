@@ -22,10 +22,4 @@ public class ReturnOCRController {
             return Collections.emptyList(); // 만약 없으면 빈 리스트 반환
         }
     }
-
-    @PostMapping("/setOCRResult")
-    public ResponseEntity<String> setOCRResult(@RequestBody List<String> ocrResult, HttpSession session) {
-        session.setAttribute("ocrResult", ocrResult);
-        return ResponseEntity.ok("OCR 결과가 세션에 저장되었습니다.");
-    }
 }
