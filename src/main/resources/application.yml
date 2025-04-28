@@ -25,10 +25,10 @@ server:
   port: ${PORT}
   ssl:
     enabled: ${SSL_ENABLED}
-    key-store: /etc/letsencrypt/keystore.p12
+    key-store: /etc/letsencrypt/live/leeyj.xyz/keystore.p12
     key-store-password: ${SSL_KEY}
     key-store-type: PKCS12
-    key-alias: tomcat
+    key-alias: leeyj.xyz
 
 apple:
   team_id: ${APPLE_TEAM_ID}

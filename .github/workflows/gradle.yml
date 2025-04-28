@@ -76,7 +76,7 @@ jobs:
             echo "Stopping and removing old container..."
             docker rm -f opensource_server || true
             echo "Starting new container..."
-            docker run -d --name opensource_server -p ${{secrets.port}}:${{secrets.port}} \
+            docker run -d --name opensource_server -p ${{secrets.PORT}}:${{secrets.PORT}} \
             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
             -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
             -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
