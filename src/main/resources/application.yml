@@ -22,9 +22,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
-  port: ${PORT}
+  port: 8080
   ssl:
-    enabled: ${SSL_ENABLED}
+    enabled: false
     key-store: /etc/letsencrypt/live/leeyj.xyz/keystore.p12
     key-store-password: ${SSL_KEY}
     key-store-type: PKCS12
