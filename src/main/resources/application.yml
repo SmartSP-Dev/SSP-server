@@ -25,10 +25,6 @@ server:
   port: 8080
   ssl:
     enabled: false
-    key-store: /etc/letsencrypt/live/leeyj.xyz/keystore.p12
-    key-store-password: ${SSL_KEY}
-    key-store-type: PKCS12
-    key-alias: leeyj.xyz
 
 apple:
   team_id: ${APPLE_TEAM_ID}
