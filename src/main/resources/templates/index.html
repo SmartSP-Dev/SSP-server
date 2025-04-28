@@ -14,6 +14,12 @@
 <h2>🍎 애플 로그인</h2>
 <a id="apple-login-btn">Apple 로그인</a>
 
+<h2>📁 파일 업로드</h2>
+<form action="/files/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" required>
+    <button type="submit">파일 업로드</button>
+</form>
+
 <script th:inline="javascript">
     Kakao.init([[${kakaoApiKey}]]);
 
