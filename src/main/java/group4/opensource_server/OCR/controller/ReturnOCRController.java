@@ -1,7 +1,10 @@
 package group4.opensource_server.OCR.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Collections;
@@ -18,5 +21,11 @@ public class ReturnOCRController {
         } else {
             return Collections.emptyList(); // 만약 없으면 빈 리스트 반환
         }
+    }
+
+    @PostMapping("/setOCRResult")
+    public ResponseEntity<String> setOCRResult(@RequestBody List<String> ocrResult, HttpSession session) {
+        session.setAttribute("ocrResult", ocrResult);
+        return ResponseEntity.ok("OCR 결과가 세션에 저장되었습니다.");
     }
 }
