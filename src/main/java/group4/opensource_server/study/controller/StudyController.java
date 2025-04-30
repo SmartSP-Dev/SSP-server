@@ -41,6 +41,16 @@ public class StudyController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/subjects")
+    public ResponseEntity<List<SubjectStatsResponseDto>> getSubjectStats(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "all") String range
+    ) {
+        List<SubjectStatsResponseDto> stats = studyService.getSubjectStats(userDetails.getUsername(), range);
+        return ResponseEntity.ok(stats);
+    }
+
+
     @GetMapping("/search")
     public ResponseEntity<List<StudyResponseDto>> searchStudies(@RequestParam String subject) {
         List<Study> studies = studyService.searchBySubject(subject);
@@ -48,6 +58,12 @@ public class StudyController {
                 .map(StudyResponseDto::new)
                 .toList();
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/stats/monthly")
+    public ResponseEntity<MonthlyStudyStatsResponseDto> getMonthlyStats(@AuthenticationPrincipal UserDetails userDetails) {
+        MonthlyStudyStatsResponseDto monthlyStudyStatsResponseDto = studyService.getMonthlyStats(userDetails.getUsername());
+        return ResponseEntity.ok(monthlyStudyStatsResponseDto);
     }
 
     @PatchMapping("/{id}")

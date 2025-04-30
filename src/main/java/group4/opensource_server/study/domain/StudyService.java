@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +37,76 @@ public class StudyService {
                 .orElseThrow(() -> new StudyNotFoundException("존재하지 않는 스터디입니다."));
     }
 
+    public MonthlyStudyStatsResponseDto getMonthlyStats(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("없는 유저입니다."));
+
+        Integer userId = user.getId();
+        LocalDate now = LocalDate.now();
+        LocalDate startOfMonth = now.withDayOfMonth(1);
+        LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+
+        List<StudyRecord> records = studyRecordRepository.findByStudyUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
+
+        Map<LocalDate, Long> dailyTotals = new HashMap<>();
+        long totalTime = 0;
+
+        for (StudyRecord record : records) {
+            LocalDate date = record.getDate();
+            long time = record.getTime();
+
+            dailyTotals.put(date, dailyTotals.getOrDefault(date, 0L) + time);
+            totalTime += time;
+        }
+
+        int studyDay = 0;
+        long maxTime = 0;
+
+        for (long daily : dailyTotals.values()) {
+            if (daily >= 1) studyDay++;
+            if (daily > maxTime) maxTime = daily;
+        }
+
+        long average = studyDay == 0 ? 0 : totalTime / studyDay;
+
+        return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime);
+    }
+
     public List<Study> getAllStudies() {
         return studyRepository.findAll();
+    }
+
+    public List<SubjectStatsResponseDto> getSubjectStats(String email, String range) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("없는 유저입니다."));
+        Integer userId = user.getId();
+
+        LocalDate startDate;
+        LocalDate endDate = LocalDate.now();
+
+        if ("week".equalsIgnoreCase(range)) {
+            startDate = endDate.with(java.time.DayOfWeek.MONDAY);
+        } else {
+            startDate = LocalDate.of(2000, 1, 1); // 충분히 과거부터 시작 (전체)
+        }
+
+        List<Study> studies = studyRepository.findByUserId(userId);
+        List<StudyRecord> records = studyRecordRepository.findByStudyUserIdAndDateBetween(userId, startDate, endDate);
+
+        Map<Integer, Long> timeMap = new HashMap<>();
+        for (StudyRecord record : records) {
+            Integer studyId = record.getStudy().getId();
+            long time = record.getTime();
+            timeMap.put(studyId, timeMap.getOrDefault(studyId, 0L) + time);
+        }
+
+        List<SubjectStatsResponseDto> result = new ArrayList<>();
+        for (Study study : studies) {
+            long time = timeMap.getOrDefault(study.getId(), 0L);
+            result.add(new SubjectStatsResponseDto(study.getId(), study.getSubject(), time));
+        }
+
+        return result;
     }
 
     public List<StudyDataResponseDto> getStudyData(Integer studyId, String range) {
