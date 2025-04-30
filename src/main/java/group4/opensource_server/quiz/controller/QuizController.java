@@ -1,73 +1,92 @@
 package group4.opensource_server.quiz.controller;
 
+import group4.opensource_server.quiz.dto.QuizQuestionDto;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import group4.opensource_server.quiz.domain.QuestionType;
-import group4.opensource_server.quiz.domain.Quiz;
-import group4.opensource_server.quiz.domain.QuizQuestion;
 import group4.opensource_server.quiz.service.QuizService;
+import group4.opensource_server.user.domain.User;
+import group4.opensource_server.user.domain.UserRepository;
+import group4.opensource_server.quiz.dto.QuizResponseDto;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/quiz")
+@RequiredArgsConstructor
 public class QuizController {
 
     private final QuizService quizService;
-
-    public QuizController(QuizService quizService) {
-        this.quizService = quizService;
-    }
+    private final UserRepository userRepository; // 추가
 
     // 1. OCR 결과를 기반으로 퀴즈 생성하고 저장
-    @PostMapping("/generateFromOCR")
+    @PostMapping("/generate")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> generateQuizFromOCR(
             @RequestParam String keyword,
             @RequestParam String questionType,
-            HttpSession session) {
+            HttpSession session,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
         Object ocrResult = session.getAttribute("ocrResult");
         if (ocrResult instanceof List<?>) {
             List<?> ocrList = (List<?>) ocrResult;
-            // 리스트 요소를 모두 합쳐서 하나의 긴 텍스트로 만듦
             StringBuilder combinedText = new StringBuilder();
             for (Object item : ocrList) {
                 combinedText.append(item.toString()).append("\n");
             }
 
-            // String을 QuestionType으로 변환 (대소문자 무시하고 변환)
-            QuestionType type = QuestionType.valueOf(questionType.toUpperCase()); // String -> QuestionType으로 변환
+            QuestionType type = QuestionType.valueOf(questionType.toUpperCase());
 
-            // 퀴즈 생성
+            // 🔥 JwtUserDetailsService에서 email 기준으로 불러오니까, username = email
+            String email = userDetails.getUsername();
+            User currentUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
+
             JSONObject result = quizService.generateQuizzesFromText(combinedText.toString(), keyword, type);
 
-            // 생성된 퀴즈를 디비에 저장
-            quizService.createQuizWithQuestions(result, "OCR 퀴즈", keyword, type, 1L); // 1L은 예시로 사용자 ID
+            quizService.createQuizWithQuestions(result, "OCR 퀴즈", keyword, type, currentUser);
 
             return ResponseEntity.ok(result.toString());
         } else {
-            // 세션에 ocrResult가 없거나 비정상적인 경우
             JSONObject errorResult = new JSONObject().put("error", "No OCR result found in session.");
             return ResponseEntity.ok(errorResult.toString());
         }
     }
 
-    // 2. 퀴즈 목록 조회
-    @GetMapping
-    public List<Quiz> getAllQuizzes() {
-        return quizService.getAllQuizzes();
+    // 로그인한 사용자의 퀴즈 목록 조회
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public List<QuizResponseDto> getMyQuizzes(@AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
+        return quizService.getQuizzesByUserId(currentUser.getId()).stream()
+                .map(QuizResponseDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    // 3. 특정 퀴즈 조회
-    @GetMapping("/{id}")
-    public Quiz getQuizById(@PathVariable Long id) {
-        return quizService.getQuizById(id);
-    }
-
-    // 4. 특정 퀴즈에 해당하는 문제 목록 조회
+    // 3. 퀴즈에 해당하는 문제들 조회
     @GetMapping("/{quizId}/questions")
-    public List<QuizQuestion> getQuizQuestions(@PathVariable Long quizId) {
-        return quizService.getQuizQuestionsByQuizId(quizId);
+    @PreAuthorize("isAuthenticated()")
+    public List<QuizQuestionDto> getQuizQuestions(@PathVariable Long quizId, @AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
+
+        return quizService.getQuizzesByUserId(currentUser.getId()).stream()
+                .filter(quiz -> quiz.getId().equals(quizId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("해당 퀴즈 없음: " + quizId))
+                .getQuestions().stream()
+                .map(QuizQuestionDto::fromEntity)
+                .collect(Collectors.toList());
     }
+
 }

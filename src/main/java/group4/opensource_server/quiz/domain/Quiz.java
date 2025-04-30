@@ -1,13 +1,15 @@
 package group4.opensource_server.quiz.domain;
 
+import group4.opensource_server.user.domain.User;
+
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.AllArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -18,8 +20,10 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(length = 255)
     private String title;
@@ -33,4 +37,17 @@ public class Quiz {
 
     @Lob
     private String summary;
+
+    // QuizQuestion 리스트
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuizQuestion> questions;
+
+    @Builder
+    public Quiz(User user, String title, String keywords, QuestionType questionType, String summary) {
+        this.user = user;
+        this.title = title;
+        this.keywords = keywords;
+        this.questionType = questionType;
+        this.summary = summary;
+    }
 }
