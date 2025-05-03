@@ -1,5 +1,6 @@
 package group4.opensource_server.quiz.controller;
 
+import group4.opensource_server.quiz.dto.QuizListDto;
 import group4.opensource_server.quiz.dto.QuizQuestionDto;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -63,12 +64,12 @@ public class QuizController {
     // 로그인한 사용자의 퀴즈 목록 조회
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
-    public List<QuizResponseDto> getMyQuizzes(@AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+    public List<QuizListDto> getMyQuizzes(@AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         String email = userDetails.getUsername();
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
         return quizService.getQuizzesByUserId(currentUser.getId()).stream()
-                .map(QuizResponseDto::fromEntity)
+                .map(QuizListDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -88,5 +89,4 @@ public class QuizController {
                 .map(QuizQuestionDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
 }
