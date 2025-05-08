@@ -20,4 +20,5 @@ public interface StudyRecordRepository extends JpaRepository<StudyRecord, Intege
         LocalDate getDate();
         Long getTotalTime();
     }
+    List<StudyRecord> findByStudyUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate);
 }
