@@ -29,6 +29,9 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
+      - name: Set environment variables
+        run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+
       - name: Build with Gradle (skip tests)
         run: ./gradlew clean build -x test
 
@@ -80,6 +83,7 @@ jobs:
             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
             -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
             -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             -e APPLE_TEAM_ID="${{secrets.APPLE_TEAM_ID}}" \
             -e APPLE_KEY_ID="${{secrets.APPLE_KEY_ID}}" \
             -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
