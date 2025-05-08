@@ -12,7 +12,7 @@ spring:
     show-sql: false
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
   servlet:
     multipart:
@@ -35,3 +35,7 @@ apple:
   client_id: ${APPLE_CLIENT_ID}
   redirect_uri: ${APPLE_REDIRECT_URI}
   private_key: ${APPLE_PRIVATE_KEY}
+
+  openai:
+    api:
+      key: ${OPENAI_API_KEY}
