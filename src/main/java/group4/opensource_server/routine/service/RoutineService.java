@@ -2,9 +2,7 @@ package group4.opensource_server.routine.service;
 
 import group4.opensource_server.routine.domain.Routine;
 import group4.opensource_server.routine.domain.RoutineRecord;
-import group4.opensource_server.routine.dto.RoutineCheckRequestDto;
-import group4.opensource_server.routine.dto.RoutineCreateRequestDto;
-import group4.opensource_server.routine.dto.RoutineCreateResponseDto;
+import group4.opensource_server.routine.dto.*;
 import group4.opensource_server.routine.repository.RoutineRepository;
 import group4.opensource_server.routine.repository.RoutineRecordRepository;
 import group4.opensource_server.user.domain.User;
@@ -12,7 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -78,5 +80,56 @@ public class RoutineService {
                     .build();
             routineRecordRepository.save(newRecord);
         }
+    }
+
+    public List<RoutineDayResponseDto> getRoutinesByDate(User user, LocalDate date) {
+        // 삭제되지 않고, 시작일 이전이며, 활성 상태인 루틴 조회
+        List<Routine> routines = routineRepository.findAllByUserAndIsActiveTrueAndStartedAtLessThanEqualAndDeletedAtIsNull(user, date);
+
+        return routines.stream().map(routine -> {
+            boolean isChecked = routineRecordRepository
+                    .findByUserAndRoutineAndDate(user, routine, date)
+                    .map(RoutineRecord::getCompleted)
+                    .orElse(false);
+
+            return new RoutineDayResponseDto(routine.getId(), routine.getTitle(), isChecked);
+        }).toList();
+    }
+
+    public List<RoutineMonthlySummaryDto> getMonthlySummaryForUser(User user) {
+        // 1. 루틴 기록 전체 기간 조회
+        Optional<LocalDate> optStart = routineRecordRepository.findEarliestDateByUser(user);
+        Optional<LocalDate> optEnd = routineRecordRepository.findLatestDateByUser(user);
+
+        if (optStart.isEmpty() || optEnd.isEmpty()) return List.of(); // 기록이 없음
+
+        LocalDate start = optStart.get();
+        LocalDate end = optEnd.get();
+
+        // 2. 해당 기간의 모든 기록 조회
+        List<RoutineRecord> allRecords = routineRecordRepository.findByUserAndDateBetween(user, start, end);
+
+        // 3. 날짜별 그룹핑
+        Map<LocalDate, List<RoutineRecord>> recordsByDate = allRecords.stream()
+                .collect(Collectors.groupingBy(RoutineRecord::getDate));
+
+        List<RoutineMonthlySummaryDto> result = new ArrayList<>();
+
+        for (LocalDate date : recordsByDate.keySet()) {
+            List<RoutineRecord> records = recordsByDate.get(date);
+
+            long completedCount = records.stream()
+                    .filter(RoutineRecord::getCompleted)
+                    .count();
+
+            // 루틴 개수는 Routine 테이블 기준으로 계산 (startedAt / deletedAt 조건 포함)
+            long totalCount = routineRepository.countByUserAndDate(user, date);
+
+            boolean achieved = totalCount > 0 && ((double) completedCount / totalCount) >= 0.8;
+
+            result.add(new RoutineMonthlySummaryDto(date, achieved));
+        }
+
+        return result;
     }
 }

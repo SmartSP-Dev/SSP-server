@@ -1,18 +1,19 @@
 package group4.opensource_server.routine.controller;
 
-import group4.opensource_server.routine.dto.RoutineCheckRequestDto;
-import group4.opensource_server.routine.dto.RoutineCheckResponseDto;
-import group4.opensource_server.routine.dto.RoutineCreateRequestDto;
-import group4.opensource_server.routine.dto.RoutineCreateResponseDto;
+import group4.opensource_server.routine.dto.*;
 import group4.opensource_server.routine.service.RoutineService;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -75,7 +76,33 @@ public class RoutineController {
                 request.getDate(),
                 status
         );
-
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<RoutineDayResponseDto>> getRoutinesByDate(
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음"));
+
+        List<RoutineDayResponseDto> routines = routineService.getRoutinesByDate(currentUser, date);
+        return ResponseEntity.ok(routines);
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<RoutineMonthlySummaryDto>> getRoutineSummary(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 유저 없음"));
+
+        List<RoutineMonthlySummaryDto> result = routineService.getMonthlySummaryForUser(currentUser);
+        return ResponseEntity.ok(result);
     }
 }
