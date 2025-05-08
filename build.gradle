@@ -54,6 +54,8 @@ dependencies {
     // pdfbox_ljj
     implementation 'org.apache.pdfbox:pdfbox:3.0.4'
 
+    implementation 'org.json:json:20240303'
+
 }
 
 
