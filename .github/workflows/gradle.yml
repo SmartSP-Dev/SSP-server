@@ -79,7 +79,7 @@ jobs:
             echo "Stopping and removing old container..."
             docker rm -f opensource_server || true
             echo "Starting new container..."
-            docker run -d --name opensource_server -p ${{secrets.port}}:${{secrets.port}} \
+            docker run -d --name opensource_server -p 8080:8080 \
             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
             -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
             -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
@@ -96,7 +96,6 @@ jobs:
             -e OPENAI_API_KEY="${{secrets.OPENAI_API_KEY}}" \
             -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
             -e SSL_ENABLED=true \
-            -e PORT=${{secrets.PORT}} \
             -e SSL_KEY=${{secrets.SSL_KEY}} \
              ${{secrets.DOCKER_IMAGE_NAME}}:latest
             echo "Deployment complete."
