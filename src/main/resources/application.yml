@@ -36,6 +36,9 @@ apple:
   redirect_uri: ${APPLE_REDIRECT_URI}
   private_key: ${APPLE_PRIVATE_KEY}
 
-  openai:
-    api:
-      key: ${OPENAI_API_KEY}
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+
+tesseract:
+  datapath: ${TESSERACT_DATAPATH}

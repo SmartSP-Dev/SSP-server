@@ -94,6 +94,7 @@ jobs:
             -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
             -e DATASOURCE_PASSWORD="${{secrets.DATASOURCE_PASSWORD}}" \
             -e OPENAI_API_KEY="${{secrets.OPENAI_API_KEY}}" \
+            -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
             -e SSL_ENABLED=true \
             -e PORT=${{secrets.PORT}} \
             -e SSL_KEY=${{secrets.SSL_KEY}} \
