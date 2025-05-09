@@ -1,5 +1,6 @@
 package group4.opensource_server.OCR.service;
 
+import jakarta.annotation.PostConstruct;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +20,8 @@ public class OCRService {
     @Value("${tesseract.datapath}")
     private String dataPath;
 
-    public OCRService() {
+    @PostConstruct
+    public void init() {
         tesseract = new Tesseract();
         tesseract.setDatapath(dataPath);
         tesseract.setLanguage("eng+kor");
