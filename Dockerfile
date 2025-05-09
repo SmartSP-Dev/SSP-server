@@ -6,7 +6,7 @@ FROM eclipse-temurin:21-jre
 COPY build/libs/*.jar app.jar
 
 # 애플리케이션 포트 설정 (예: 8080)
-EXPOSE 443
+EXPOSE 8080
 
 # JAR 파일 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
