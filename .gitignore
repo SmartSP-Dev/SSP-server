@@ -40,3 +40,5 @@ out/
 
 # .yml
 src/main/resources/application.yml
+
+/temp_for_upload
