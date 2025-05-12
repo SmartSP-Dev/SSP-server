@@ -12,17 +12,25 @@ spring:
     show-sql: false
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
+    defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+  sql:
+    init:
+      mode: always
   servlet:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
   datasource:
-    url: ${DATASOURCE_URL}
+    url: ${DATASOURCE_URL}?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC  # UTF-8 설정 추가
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  h2:
+    console:
+      enabled: false
+      path: /h2-console
 
 server:
   port: ${PORT}

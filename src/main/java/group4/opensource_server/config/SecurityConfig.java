@@ -39,7 +39,17 @@ public class SecurityConfig {
                                 "/files/upload",           // 파일 업로드 부분을 임시로 열어놓았습니다
                                 "/uploadSuccess",
                                 "/uploadFailure",
-                                "/returnOCRResult"
+                                "/returnOCRResult",
+                                "/when2meet/users/{user_id}/groups",
+                                "/when2meet/groups",
+                                "/when2meet/groups/{group_key}/members",
+                                "/when2meet/groups/{group_key}/timetable",
+                                "/when2meet/groups/{group_key}",
+                                "/when2meet/groups/{group_key}/group_leader",
+                                "/when2meet/groups/{group_key}/group_key",
+                                "/when2meet/groups/{group_key}/timetable",
+                                "/h2-console/**"
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
