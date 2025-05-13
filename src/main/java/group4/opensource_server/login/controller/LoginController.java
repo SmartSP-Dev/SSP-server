@@ -29,6 +29,13 @@ public class LoginController {
         }
     }
 
+    @PostMapping("/login/kakao/token")
+    public ResponseEntity<LoginResponseDto> loginWithAccessToken(@RequestBody Map<String, String> body) {
+        String accessToken = body.get("access_token");
+        LoginResponseDto response = kakaoService.kakaoLoginWithToken(accessToken);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login/apple")
     public ResponseEntity<LoginResponseDto> appleLogin(@RequestBody Map<String, String> body) {
         try{

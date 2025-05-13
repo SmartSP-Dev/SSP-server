@@ -51,6 +51,26 @@ public class KakaoService {
                 .build();
     }
 
+    public LoginResponseDto kakaoLoginWithToken(String accessToken) {
+        KakaoUserInfoResponseDto kakaoUserInfoResponseDto = getKakaoUserInfo(accessToken);
+
+        User user = userService.getUserByEmail(kakaoUserInfoResponseDto.getKakaoAccount().getEmail()).orElseGet(() -> {
+            return userService.createUser(User.builder()
+                    .profileImage(kakaoUserInfoResponseDto.getKakaoAccount().getProfile().getThumbnailImageUrl())
+                    .email(kakaoUserInfoResponseDto.getKakaoAccount().getEmail())
+                    .provider("kakao")
+                    .build());
+        });
+
+        String newAccessToken = jwtUtil.generateAccessToken(user.getEmail());
+        String newRefreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+
+        return LoginResponseDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+    }
+
     public String getAccessToken(String code) {
         KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create("https://kauth.kakao.com").post()
                 .uri(uriBuilder -> uriBuilder
