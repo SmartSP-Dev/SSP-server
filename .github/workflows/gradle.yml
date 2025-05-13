@@ -78,6 +78,7 @@ jobs:
             docker pull ${{secrets.DOCKER_IMAGE_NAME}}:latest
             echo "Stopping and removing old container..."
             docker rm -f opensource_server || true
+            docker system prune -a -f
             echo "Starting new container..."
             docker run -d --name opensource_server -p 8080:8080 \
             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \

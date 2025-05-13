@@ -31,8 +31,7 @@ public class LoginController {
 
     @PostMapping("/login/kakao/token")
     public ResponseEntity<LoginResponseDto> loginWithAccessToken(@RequestBody Map<String, String> body) {
-        String accessToken = body.get("accessToken");
-        LoginResponseDto response = kakaoService.kakaoLoginWithToken(accessToken);
+        LoginResponseDto response = kakaoService.kakaoLoginWithToken(body.get("accessToken"));
         return ResponseEntity.ok(response);
     }
 
