@@ -30,17 +30,11 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()) // 🔥 Spring Security 기본 로그인폼 비활성화
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",                         // index.html 경로
-                                "/auth/**",                 // 로그인 API
-                                "/css/**", "/js/**",        // 정적 자원
-                                "/images/**", "/favicon.ico",
-                                "/webjars/**", "/error",     // 필수 자원
-                                "/calendar/**",
-                                "/files/upload",           // 파일 업로드 부분을 임시로 열어놓았습니다
-                                "/uploadSuccess",
-                                "/uploadFailure",
-                                "/returnOCRResult",
-                                "/quiz/**"
+                                "/", "/auth/**", "/css/**", "/js/**",
+                                "/images/**", "/favicon.ico", "/webjars/**", "/error",
+                                "/calendar/**", "/files/upload", "/uploadSuccess",
+                                "/uploadFailure", "/returnOCRResult", "/quiz/**",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
