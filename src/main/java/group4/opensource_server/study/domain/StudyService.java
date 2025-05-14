@@ -61,15 +61,20 @@ public class StudyService {
 
         int studyDay = 0;
         long maxTime = 0;
+        LocalDate maxDay = null;
 
-        for (long daily : dailyTotals.values()) {
+        for (Map.Entry<LocalDate, Long> entry : dailyTotals.entrySet()) {
+            long daily = entry.getValue();
             if (daily >= 1) studyDay++;
-            if (daily > maxTime) maxTime = daily;
+            if (daily > maxTime) {
+                maxTime = daily;
+                maxDay = entry.getKey();
+            }
         }
 
         long average = studyDay == 0 ? 0 : totalTime / studyDay;
 
-        return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime);
+        return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime, maxDay);
     }
 
     public List<Study> getAllStudies() {
