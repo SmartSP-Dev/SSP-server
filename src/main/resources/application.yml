@@ -1,6 +1,7 @@
 springdoc:
   server-url: https://leeyj.xyz
 
+
 kakao:
   redirect_uri: ${KAKAO_REDIRECT_URI}
   api_key: ${KAKAO_API_KEY}
@@ -31,6 +32,7 @@ server:
   port: 8080
   ssl:
     enabled: false
+  forward-headers-strategy: native
 
 apple:
   team_id: ${APPLE_TEAM_ID}
