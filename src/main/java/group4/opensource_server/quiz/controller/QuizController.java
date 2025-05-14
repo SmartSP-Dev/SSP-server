@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import group4.opensource_server.quiz.dto.QuizListDto;
 import group4.opensource_server.quiz.dto.QuizQuestionDto;
 import group4.opensource_server.quiz.domain.QuestionType;
+import group4.opensource_server.quiz.dto.QuizSubmitRequestDto;
+import group4.opensource_server.quiz.dto.QuizSubmitResultDto;
 import group4.opensource_server.quiz.service.QuizService;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
@@ -32,6 +34,7 @@ public class QuizController {
     @PostMapping("/generate")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> generateQuizFromOCR(
+            @RequestParam String title,
             @RequestParam String keyword,
             @RequestParam String questionType,
             HttpSession session,
@@ -51,7 +54,7 @@ public class QuizController {
                     .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
 
             JSONObject result = quizService.generateQuizzesFromText(combinedText.toString(), keyword, type);
-            quizService.createQuizWithQuestions(result, "OCR 퀴즈", keyword, type, currentUser);
+            quizService.createQuizWithQuestions(result, title, keyword, type, currentUser);
 
             System.out.println("Generated Quiz JSON:\n" + result.toString(2));
             return ResponseEntity.ok(result.toString());
@@ -82,7 +85,7 @@ public class QuizController {
         return quizzes;
     }
 
-    @GetMapping("/{quizId}/questions")
+    @GetMapping("/{quizId}")
     @PreAuthorize("isAuthenticated()")
     public List<QuizQuestionDto> getQuizQuestions(@PathVariable Long quizId, @AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
@@ -104,5 +107,11 @@ public class QuizController {
         }
 
         return questions;
+    }
+
+    @PostMapping("/submit")
+    public ResponseEntity<QuizSubmitResultDto> submitQuiz(@RequestBody QuizSubmitRequestDto request) {
+        QuizSubmitResultDto result = quizService.submitQuiz(request);
+        return ResponseEntity.ok(result);
     }
 }

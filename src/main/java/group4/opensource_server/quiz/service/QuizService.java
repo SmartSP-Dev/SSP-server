@@ -1,14 +1,14 @@
 package group4.opensource_server.quiz.service;
 
-import group4.opensource_server.quiz.domain.QuestionType;
-import group4.opensource_server.quiz.domain.Quiz;
-import group4.opensource_server.quiz.domain.QuizQuestion;
-import group4.opensource_server.quiz.repository.QuizQuestionRepository;
-import group4.opensource_server.quiz.repository.QuizRepository;
+import group4.opensource_server.quiz.domain.*;
+import group4.opensource_server.quiz.dto.QuizSubmitRequestDto;
+import group4.opensource_server.quiz.dto.QuizSubmitResultDto;
 import group4.opensource_server.user.domain.User;
+import group4.opensource_server.user.domain.UserRepository;
+import lombok.RequiredArgsConstructor;
+import group4.opensource_server.quiz.repository.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,19 +17,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class QuizService {
 
     private final QuizRepository quizRepository;
     private final QuizQuestionRepository quizQuestionRepository;
-
-    @Autowired
-    public QuizService(QuizRepository quizRepository, QuizQuestionRepository quizQuestionRepository) {
-        this.quizRepository = quizRepository;
-        this.quizQuestionRepository = quizQuestionRepository;
-    }
+    private final UserRepository userRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final QuestionResultRepository questionResultRepository;
 
     @Transactional(readOnly = true)
     public List<Quiz> getQuizzesByUserId(Integer userId) {
@@ -40,11 +41,6 @@ public class QuizService {
             }
         }
         return quizzes;
-    }
-
-    // 특정 퀴즈에 해당하는 문제 목록 조회
-    public List<QuizQuestion> getQuizQuestionsByQuizId(Long quizId) {
-        return quizQuestionRepository.findByQuizId(quizId);
     }
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -183,5 +179,82 @@ public class QuizService {
         // 퀴즈에 문제 리스트를 붙여서 반환
         quiz.setQuestions(quizQuestionRepository.findByQuizId(quiz.getId()));
         return quiz;
+    }
+
+    @Transactional
+    public QuizSubmitResultDto submitQuiz(QuizSubmitRequestDto request) {
+        Quiz quiz = quizRepository.findById(request.getQuizId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        // 1. 퀴즈 시도 저장
+        QuizAttempt attempt = quizAttemptRepository.save(
+                QuizAttempt.builder()
+                        .quiz(quiz)
+                        .user(user)
+                        .score(0) // 일단 0점, 아래에서 계산
+                        .reviewCount(0)
+                        .attemptTime(LocalDateTime.now())
+                        .build()
+        );
+
+        int correctCount = 0;
+        List<QuizSubmitResultDto.QuestionResult> resultList = new ArrayList<>();
+
+        for (QuizSubmitRequestDto.AnswerDto answer : request.getAnswers()) {
+            // quizNumber로 문제 찾기
+            QuizQuestion question = quizQuestionRepository.findByQuizAndQuizNumber(quiz, answer.getQuizNumber())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 번호의 문제가 존재하지 않습니다."));
+
+            boolean isCorrect = evaluateAnswer(question.getQuestionType(), answer.getUserAnswer(), question.getCorrectAnswer());
+
+            if (isCorrect) correctCount++;
+
+            // 문항별 결과 저장
+            questionResultRepository.save(
+                    QuestionResult.builder()
+                            .quizAttempt(attempt)
+                            .quiz(quiz)
+                            .quizQuestion(question)
+                            .userAnswer(answer.getUserAnswer())
+                            .isCorrect(isCorrect)
+                            .build()
+            );
+
+            resultList.add(new QuizSubmitResultDto.QuestionResult(
+                    question.getQuizNumber(),
+                    question.getQuestionTitle(),
+                    answer.getUserAnswer(),
+                    question.getCorrectAnswer(),
+                    isCorrect
+            ));
+        }
+
+        // 점수 업데이트
+        attempt.setScore(correctCount);
+        quizAttemptRepository.save(attempt);
+
+        // 결과 반환
+        return QuizSubmitResultDto.builder()
+                .totalQuestions(request.getAnswers().size())
+                .correctAnswers(correctCount)
+                .questionResults(resultList)
+                .build();
+    }
+
+    private boolean evaluateAnswer(QuestionType type, String userAnswer, String correctAnswer) {
+        if (userAnswer == null || correctAnswer == null) return false;
+
+        return switch (type) {
+            case FILL_BLANK -> normalize(userAnswer).equals(normalize(correctAnswer));
+            case MULTIPLE_CHOICE, OX -> userAnswer.equalsIgnoreCase(correctAnswer);
+            default -> false;
+        };
+    }
+
+    private String normalize(String input) {
+        return input.trim().toLowerCase();
     }
 }
