@@ -90,7 +90,7 @@ public class StudyController {
 
     @Operation(summary = "스터디 학습 기록 추가", description = "기존 스터디에 대한 학습 시간 기록을 추가합니다.")
     @PostMapping("/records")
-    public ResponseEntity<StudyDataResponseDto> createRecord(@RequestBody StudyRecordRequestDto studyRecordRequestDto) {
-        return ResponseEntity.ok(studyService.createStudyRecord(studyRecordRequestDto));
+    public ResponseEntity<StudyDataResponseDto> createRecord(@AuthenticationPrincipal UserDetails userDetails, @RequestBody StudyRecordRequestDto studyRecordRequestDto) {
+        return ResponseEntity.ok(studyService.createStudyRecord(userDetails.getUsername(),studyRecordRequestDto));
     }
 }

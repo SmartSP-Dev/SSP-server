@@ -146,18 +146,22 @@ public class StudyService {
     }
 
     @Transactional
-    public StudyDataResponseDto createStudyRecord(StudyRecordRequestDto studyRecordRequestDto) {
+    public StudyDataResponseDto createStudyRecord(String email, StudyRecordRequestDto studyRecordRequestDto) {
         Study study = studyRepository.findById(studyRecordRequestDto.getStudyId())
                 .orElseThrow(() -> new StudyNotFoundException("존재하지 않는 스터디입니다."));
-
-        StudyRecord studyRecord=studyRecordRepository.save(StudyRecord.builder()
-                .study(study)
-                .date(studyRecordRequestDto.getDate())
-                .time(studyRecordRequestDto.getTime())
-                .build());
-        return StudyDataResponseDto.builder()
-                .date(studyRecord.getDate())
-                .time(studyRecord.getTime().longValue())
-                .build();
+        if(study.getUser().getEmail().equals(email)) {
+            StudyRecord studyRecord = studyRecordRepository.save(StudyRecord.builder()
+                    .study(study)
+                    .date(studyRecordRequestDto.getDate())
+                    .time(studyRecordRequestDto.getTime())
+                    .build());
+            return StudyDataResponseDto.builder()
+                    .date(studyRecord.getDate())
+                    .time(studyRecord.getTime().longValue())
+                    .build();
+        }
+        else {
+            return StudyDataResponseDto.builder().build();
+        }
     }
 }
