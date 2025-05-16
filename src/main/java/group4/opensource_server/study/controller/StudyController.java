@@ -40,8 +40,8 @@ public class StudyController {
 
     @Operation(summary = "전체 스터디 조회", description = "현재 로그인한 사용자의 전체 스터디 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<StudyResponseDto>> getAllStudies() {
-        List<StudyResponseDto> result = studyService.getAllStudies().stream()
+    public ResponseEntity<List<StudyResponseDto>> getAllStudies(@AuthenticationPrincipal UserDetails userDetails) {
+        List<StudyResponseDto> result = studyService.getAllStudies(userDetails.getUsername()).stream()
                 .map(StudyResponseDto::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);

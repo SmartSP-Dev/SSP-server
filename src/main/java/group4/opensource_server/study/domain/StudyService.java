@@ -77,8 +77,11 @@ public class StudyService {
         return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime, maxDay);
     }
 
-    public List<Study> getAllStudies() {
-        return studyRepository.findAll();
+    public List<Study> getAllStudies(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("없는 유저입니다."));
+        Integer userId = user.getId();
+        return studyRepository.findByUserId(userId);
     }
 
     public List<SubjectStatsResponseDto> getSubjectStats(String email, String range) {
