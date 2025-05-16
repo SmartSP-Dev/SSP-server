@@ -3,6 +3,8 @@ package group4.opensource_server.study.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 public class MonthlyStudyStatsResponseDto {
@@ -10,4 +12,5 @@ public class MonthlyStudyStatsResponseDto {
     private long studyTime;
     private long averageStudyTime;
     private long maxStudyTime;
+    private LocalDate maxStudyDay;
 }

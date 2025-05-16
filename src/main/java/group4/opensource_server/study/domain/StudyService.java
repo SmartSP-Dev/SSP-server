@@ -61,19 +61,27 @@ public class StudyService {
 
         int studyDay = 0;
         long maxTime = 0;
+        LocalDate maxDay = null;
 
-        for (long daily : dailyTotals.values()) {
+        for (Map.Entry<LocalDate, Long> entry : dailyTotals.entrySet()) {
+            long daily = entry.getValue();
             if (daily >= 1) studyDay++;
-            if (daily > maxTime) maxTime = daily;
+            if (daily > maxTime) {
+                maxTime = daily;
+                maxDay = entry.getKey();
+            }
         }
 
         long average = studyDay == 0 ? 0 : totalTime / studyDay;
 
-        return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime);
+        return new MonthlyStudyStatsResponseDto(studyDay, totalTime, average, maxTime, maxDay);
     }
 
-    public List<Study> getAllStudies() {
-        return studyRepository.findAll();
+    public List<Study> getAllStudies(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("없는 유저입니다."));
+        Integer userId = user.getId();
+        return studyRepository.findByUserId(userId);
     }
 
     public List<SubjectStatsResponseDto> getSubjectStats(String email, String range) {
@@ -138,18 +146,22 @@ public class StudyService {
     }
 
     @Transactional
-    public StudyDataResponseDto createStudyRecord(StudyRecordRequestDto studyRecordRequestDto) {
+    public StudyDataResponseDto createStudyRecord(String email, StudyRecordRequestDto studyRecordRequestDto) {
         Study study = studyRepository.findById(studyRecordRequestDto.getStudyId())
                 .orElseThrow(() -> new StudyNotFoundException("존재하지 않는 스터디입니다."));
-
-        StudyRecord studyRecord=studyRecordRepository.save(StudyRecord.builder()
-                .study(study)
-                .date(studyRecordRequestDto.getDate())
-                .time(studyRecordRequestDto.getTime())
-                .build());
-        return StudyDataResponseDto.builder()
-                .date(studyRecord.getDate())
-                .time(studyRecord.getTime().longValue())
-                .build();
+        if(study.getUser().getEmail().equals(email)) {
+            StudyRecord studyRecord = studyRecordRepository.save(StudyRecord.builder()
+                    .study(study)
+                    .date(studyRecordRequestDto.getDate())
+                    .time(studyRecordRequestDto.getTime())
+                    .build());
+            return StudyDataResponseDto.builder()
+                    .date(studyRecord.getDate())
+                    .time(studyRecord.getTime().longValue())
+                    .build();
+        }
+        else {
+            return StudyDataResponseDto.builder().build();
+        }
     }
 }

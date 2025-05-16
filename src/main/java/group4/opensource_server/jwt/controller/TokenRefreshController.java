@@ -22,10 +22,19 @@ public class TokenRefreshController {
             description = "리프레시 토큰을 이용해 새로운 액세스 토큰을 발급받습니다. 유효한 리프레시 토큰이 필요합니다."
     )
     @PostMapping("/refresh")
-    public ResponseEntity<TokenRefreshResponseDto> refreshAccessToken(@RequestBody TokenRefreshRequestDto request) {
-        String newAccessToken = jwtUtil.refreshAccessToken(request.getRefreshToken());
+    public ResponseEntity<TokenRefreshResponseDto> refreshTokens(
+            @RequestBody TokenRefreshRequestDto request) {
+
+        String oldRefreshToken = request.getRefreshToken();
+        String newAccessToken = jwtUtil.refreshAccessToken(oldRefreshToken);
+
+        String subject         = jwtUtil.extractUsername(oldRefreshToken);
+        String newRefreshToken = jwtUtil.generateRefreshToken(subject);
+
         return ResponseEntity.ok(TokenRefreshResponseDto.builder()
                 .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build());
     }
+
 }

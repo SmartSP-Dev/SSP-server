@@ -40,8 +40,8 @@ public class StudyController {
 
     @Operation(summary = "전체 스터디 조회", description = "현재 로그인한 사용자의 전체 스터디 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<StudyResponseDto>> getAllStudies() {
-        List<StudyResponseDto> result = studyService.getAllStudies().stream()
+    public ResponseEntity<List<StudyResponseDto>> getAllStudies(@AuthenticationPrincipal UserDetails userDetails) {
+        List<StudyResponseDto> result = studyService.getAllStudies(userDetails.getUsername()).stream()
                 .map(StudyResponseDto::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
@@ -90,7 +90,7 @@ public class StudyController {
 
     @Operation(summary = "스터디 학습 기록 추가", description = "기존 스터디에 대한 학습 시간 기록을 추가합니다.")
     @PostMapping("/records")
-    public ResponseEntity<StudyDataResponseDto> createRecord(@RequestBody StudyRecordRequestDto studyRecordRequestDto) {
-        return ResponseEntity.ok(studyService.createStudyRecord(studyRecordRequestDto));
+    public ResponseEntity<StudyDataResponseDto> createRecord(@AuthenticationPrincipal UserDetails userDetails, @RequestBody StudyRecordRequestDto studyRecordRequestDto) {
+        return ResponseEntity.ok(studyService.createStudyRecord(userDetails.getUsername(),studyRecordRequestDto));
     }
 }
