@@ -28,6 +28,7 @@ public class QuizQuestion {
 
     private String questionTitle;
     private String questionContent;
+    @Column(name = "quiz_number")
     private int quizNumber;
     private String correctAnswer;
 
