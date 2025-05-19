@@ -4,6 +4,8 @@ import group4.opensource_server.routine.dto.*;
 import group4.opensource_server.routine.service.RoutineService;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +20,16 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/routines")
+@Tag(name = "Routine", description = "루틴 생성, 조회, 삭제, 체크 기능 API")
 public class RoutineController {
 
     private final RoutineService routineService;
     private final UserRepository userRepository;
 
+    @Operation(
+            summary = "루틴 생성",
+            description = "루틴 제목과 요일 정보를 받아 새로운 루틴을 생성합니다."
+    )
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<RoutineCreateResponseDto> createRoutine(
@@ -39,6 +46,10 @@ public class RoutineController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "루틴 삭제",
+            description = "루틴 ID를 통해 특정 루틴을 삭제 처리합니다."
+    )
     @PatchMapping("/{routineId}/delete")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> deleteRoutine(
@@ -58,6 +69,11 @@ public class RoutineController {
         }
     }
 
+
+    @Operation(
+            summary = "루틴 체크/해제",
+            description = "특정 날짜에서 사용자가 해당 루틴을 체크 또는 체크해제 합니다."
+    )
     @PatchMapping("/check")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<RoutineCheckResponseDto> checkRoutine(
@@ -79,6 +95,11 @@ public class RoutineController {
         return ResponseEntity.ok(response);
     }
 
+
+    @Operation(
+            summary = "날짜별 루틴 목록 조회",
+            description = "특정 날짜에 해당하는 루틴 리스트를 반환합니다."
+    )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<RoutineDayResponseDto>> getRoutinesByDate(
@@ -93,6 +114,10 @@ public class RoutineController {
         return ResponseEntity.ok(routines);
     }
 
+    @Operation(
+            summary = "루틴 월간 요약 조회",
+            description = "현재 사용자의 월별 루틴 달성 요약을 반환합니다."
+    )
     @GetMapping("/summary")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<RoutineMonthlySummaryDto>> getRoutineSummary(
