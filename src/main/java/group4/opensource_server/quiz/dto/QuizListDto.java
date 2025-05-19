@@ -1,24 +1,29 @@
 package group4.opensource_server.quiz.dto;
 
-
 import group4.opensource_server.quiz.domain.Quiz;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Builder
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class QuizListDto {
-    private Long id;
+    private Long quizId;
     private String title;
-    private String keyword;
+    private String keywords;
+    private String questionType;
+    private LocalDate createdAt;
 
     public static QuizListDto fromEntity(Quiz quiz) {
-        return QuizListDto.builder()
-                .id(quiz.getId())
-                .title(quiz.getTitle())
-                .keyword(quiz.getKeywords())
-                .build();
+        return new QuizListDto(
+                quiz.getId(),
+                quiz.getTitle(),
+                quiz.getKeywords(),
+                quiz.getQuestionType().name(),
+                quiz.getCreatedAt()
+        );
     }
 }

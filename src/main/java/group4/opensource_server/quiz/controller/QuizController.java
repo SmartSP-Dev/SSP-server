@@ -2,11 +2,10 @@ package group4.opensource_server.quiz.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import group4.opensource_server.quiz.dto.QuizListDto;
-import group4.opensource_server.quiz.dto.QuizQuestionDto;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import group4.opensource_server.quiz.dto.*;
 import group4.opensource_server.quiz.domain.QuestionType;
-import group4.opensource_server.quiz.dto.QuizSubmitRequestDto;
-import group4.opensource_server.quiz.dto.QuizSubmitResultDto;
 import group4.opensource_server.quiz.service.QuizService;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
@@ -20,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,10 +33,7 @@ public class QuizController {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Operation(
-            summary = "OCR 기반 퀴즈 생성",
-            description = "세션에 저장된 OCR 결과를 바탕으로 키워드와 문제 유형에 따라 퀴즈를 생성합니다."
-    )
+    @Operation(summary = "OCR 기반 퀴즈 생성", description = "세션에 저장된 OCR 결과를 바탕으로 키워드와 문제 유형에 따라 퀴즈를 생성합니다.")
     @PostMapping("/generate")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> generateQuizFromOCR(
@@ -73,10 +68,7 @@ public class QuizController {
         }
     }
 
-    @Operation(
-            summary = "내 퀴즈 목록 조회",
-            description = "로그인한 사용자가 생성한 퀴즈 목록을 반환합니다."
-    )
+    @Operation(summary = "내 퀴즈 목록 조회", description = "로그인한 사용자가 생성한 퀴즈 목록을 반환합니다.")
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public List<QuizListDto> getMyQuizzes(@AuthenticationPrincipal UserDetails userDetails) {
@@ -89,6 +81,8 @@ public class QuizController {
                 .collect(Collectors.toList());
 
         try {
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // yyyy-MM-dd 형태 유지
             System.out.println("Quiz list for user " + email + ":\n" + objectMapper.writeValueAsString(quizzes));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -97,10 +91,7 @@ public class QuizController {
         return quizzes;
     }
 
-    @Operation(
-            summary = "퀴즈 상세 조회",
-            description = "지정된 퀴즈 ID에 해당하는 문제 목록(10문제)을 반환합니다."
-    )
+    @Operation(summary = "퀴즈 상세 조회", description = "지정된 퀴즈 ID에 해당하는 문제 목록(10문제)을 반환합니다.")
     @GetMapping("/{quizId}")
     @PreAuthorize("isAuthenticated()")
     public List<QuizQuestionDto> getQuizQuestions(@PathVariable Long quizId, @AuthenticationPrincipal UserDetails userDetails) {
@@ -125,13 +116,47 @@ public class QuizController {
         return questions;
     }
 
-    @Operation(
-            summary = "퀴즈 제출",
-            description = "프론트엔드에서 제출한 퀴즈 응답을 채점하고 결과를 반환합니다."
-    )
     @PostMapping("/submit")
-    public ResponseEntity<QuizSubmitResultDto> submitQuiz(@RequestBody QuizSubmitRequestDto request) {
-        QuizSubmitResultDto result = quizService.submitQuiz(request);
+    @Operation(summary = "퀴즈 제출", description = "프론트엔드에서 제출한 퀴즈 응답을 채점하고 결과를 반환합니다.")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<QuizSubmitResultDto> submitQuiz(
+            @RequestBody QuizSubmitRequestDto request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails.getUsername();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저 없음: " + email));
+
+        QuizSubmitResultDto result = quizService.submitQuiz(request, user);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/summary/week")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "이번 주 퀴즈 요약", description = "총 퀴즈 수, 복습 완료 수, 미복습 수를 반환합니다.")
+    public ResponseEntity<WeeklyQuizSummaryDto> getWeeklySummary(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        WeeklyQuizSummaryDto summary = quizService.getWeeklyQuizSummary(user);
+        return ResponseEntity.ok(summary);
+    }
+
+    @DeleteMapping("/delete/{quizId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "퀴즈 삭제", description = "본인이 생성한 퀴즈를 삭제합니다.")
+    public ResponseEntity<String> deleteQuiz(
+            @PathVariable Long quizId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        quizService.deleteQuiz(user, quizId);
+        return ResponseEntity.ok("퀴즈 " + quizId + "번이 삭제되었습니다.");
     }
 }

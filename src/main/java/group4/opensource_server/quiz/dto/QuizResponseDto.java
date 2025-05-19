@@ -23,7 +23,6 @@ public class QuizResponseDto {
         return QuizResponseDto.builder()
                 .id(quiz.getId())
                 .title(quiz.getTitle())
-                .summary(quiz.getSummary())
                 .keyword(quiz.getKeywords())
                 .questions(
                     quiz.getQuestions().stream()
