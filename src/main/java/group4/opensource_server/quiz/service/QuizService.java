@@ -3,6 +3,7 @@ package group4.opensource_server.quiz.service;
 import group4.opensource_server.quiz.domain.*;
 import group4.opensource_server.quiz.dto.QuizSubmitRequestDto;
 import group4.opensource_server.quiz.dto.QuizSubmitResultDto;
+import group4.opensource_server.quiz.dto.WeeklyQuizSummaryDto;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,12 +185,9 @@ public class QuizService {
     }
 
     @Transactional
-    public QuizSubmitResultDto submitQuiz(QuizSubmitRequestDto request) {
+    public QuizSubmitResultDto submitQuiz(QuizSubmitRequestDto request, User user) {
         Quiz quiz = quizRepository.findById(request.getQuizId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
-
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         // 1. 퀴즈 시도 저장
         QuizAttempt attempt = quizAttemptRepository.save(
@@ -256,5 +256,41 @@ public class QuizService {
 
     private String normalize(String input) {
         return input.trim().toLowerCase();
+    }
+
+
+    public WeeklyQuizSummaryDto getWeeklyQuizSummary(User user) {
+        LocalDate startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY);
+
+        List<Quiz> allUserQuizzes = quizRepository.findByUserId(user.getId());
+
+        // 이번 주에 생성되었거나 마지막 복습된 퀴즈만 필터링
+        List<Quiz> thisWeekQuizzes = allUserQuizzes.stream()
+                .filter(quiz -> {
+                    LocalDate baseDate = quiz.getLastReviewedAt() != null
+                            ? quiz.getLastReviewedAt()
+                            : quiz.getCreatedAt();
+                    return baseDate != null && !baseDate.isBefore(startOfWeek);
+                })
+                .toList();
+
+        long total = thisWeekQuizzes.size();
+        long reviewed = thisWeekQuizzes.stream().filter(q -> q.getStatus() == 3).count();
+        long notReviewed = thisWeekQuizzes.stream()
+                .filter(q -> q.getStatus() == 2 || q.getStatus() == 1)
+                .count();
+
+        return new WeeklyQuizSummaryDto(total, reviewed, notReviewed);
+    }
+
+    public void deleteQuiz(User user, Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("퀴즈를 찾을 수 없습니다."));
+
+        if (!quiz.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("본인이 생성한 퀴즈만 삭제할 수 있습니다.");
+        }
+
+        quizRepository.delete(quiz);
     }
 }

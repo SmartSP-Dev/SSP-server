@@ -13,8 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class QuizSubmitRequestDto {
     private Long quizId;
-    private Integer userId;
-
     private List<AnswerDto> answers;
 
     @Getter
