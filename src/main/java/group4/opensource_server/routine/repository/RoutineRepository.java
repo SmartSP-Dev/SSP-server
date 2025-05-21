@@ -12,15 +12,21 @@ import java.util.Optional;
 
 public interface RoutineRepository extends JpaRepository<Routine, Long> {
 
-    // 삭제되지 않고, 시작일 이전이며, 활성 상태인 루틴 조회
-    List<Routine> findAllByUserAndIsActiveTrueAndStartedAtLessThanEqualAndDeletedAtIsNull(User user, LocalDate date);
+    @Query("""
+            SELECT r FROM Routine r
+        WHERE r.user = :user
+        AND r.startedAt <= :date
+        AND (r.deletedAt IS NULL OR r.deletedAt > :date)
+        """)
+    List<Routine> findActiveRoutinesByUserAndDate(@Param("user") User user, @Param("date") LocalDate date);
+
 
     @Query("""
-    SELECT COUNT(r) FROM Routine r
-    WHERE r.user = :user
-    AND r.isActive = true
-    AND r.startedAt <= :date
-    AND (r.deletedAt IS NULL OR r.deletedAt > :date)
-    """)
+        SELECT COUNT(r) FROM Routine r
+        WHERE r.user = :user
+        AND r.startedAt <= :date
+        AND (r.deletedAt IS NULL OR r.deletedAt > :date)
+        """)
     long countByUserAndDate(@Param("user") User user, @Param("date") LocalDate date);
+
 }
