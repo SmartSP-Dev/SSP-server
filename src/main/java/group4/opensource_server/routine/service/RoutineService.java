@@ -83,8 +83,8 @@ public class RoutineService {
     }
 
     public List<RoutineDayResponseDto> getRoutinesByDate(User user, LocalDate date) {
-        // 삭제되지 않고, 시작일 이전이며, 활성 상태인 루틴 조회
-        List<Routine> routines = routineRepository.findAllByUserAndIsActiveTrueAndStartedAtLessThanEqualAndDeletedAtIsNull(user, date);
+        // 날짜 조건에 맞는 루틴만 조회
+        List<Routine> routines = routineRepository.findActiveRoutinesByUserAndDate(user, date);
 
         return routines.stream().map(routine -> {
             boolean isChecked = routineRecordRepository
