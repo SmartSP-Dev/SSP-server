@@ -16,6 +16,8 @@ public class QuizListDto {
     private String keywords;
     private String questionType;
     private LocalDate createdAt;
+    private Boolean isReviewed;
+
 
     public static QuizListDto fromEntity(Quiz quiz) {
         return new QuizListDto(
@@ -23,7 +25,9 @@ public class QuizListDto {
                 quiz.getTitle(),
                 quiz.getKeywords(),
                 quiz.getQuestionType().name(),
-                quiz.getCreatedAt()
+                quiz.getCreatedAt(),
+                quiz.getStatus() == 3 // 상태가 3이면 복습 완료로 간주
+
         );
     }
 }

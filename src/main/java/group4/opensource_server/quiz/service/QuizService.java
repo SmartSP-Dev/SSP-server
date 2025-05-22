@@ -236,6 +236,11 @@ public class QuizService {
         attempt.setScore(correctCount);
         quizAttemptRepository.save(attempt);
 
+        // 퀴즈 상태 및 마지막 복습일 갱신
+        quiz.setStatus(3);
+        quiz.setLastReviewedAt(LocalDate.now());
+        quizRepository.save(quiz);
+
         // 결과 반환
         return QuizSubmitResultDto.builder()
                 .totalQuestions(request.getAnswers().size())
