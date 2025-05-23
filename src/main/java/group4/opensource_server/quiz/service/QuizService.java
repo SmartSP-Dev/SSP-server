@@ -307,4 +307,19 @@ public class QuizService {
         }
         quizRepository.delete(quiz);
     }
+
+    @Transactional
+    public void updateQuizStatusesForNextDay() {
+        List<Quiz> allQuizzes = quizRepository.findAll();
+
+        for (Quiz quiz : allQuizzes) {
+            if (quiz.getStatus() == 3 &&
+                    quiz.getLastReviewedAt() != null &&
+                    quiz.getLastReviewedAt().isBefore(LocalDate.now())) {
+
+                quiz.setStatus(2); // 복습 필요 상태로 전환
+                quizRepository.save(quiz);
+            }
+        }
+    }
 }
