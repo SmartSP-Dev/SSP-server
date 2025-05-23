@@ -35,12 +35,19 @@ public class QuizService {
     private final QuizAttemptRepository quizAttemptRepository;
     private final QuestionResultRepository questionResultRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Quiz> getQuizzesByUserId(Integer userId) {
         List<Quiz> quizzes = quizRepository.findByUserId(userId);
         for (Quiz quiz : quizzes) {
             for (QuizQuestion question : quiz.getQuestions()) {
-                question.getIncorrectAnswers().size(); // Force initialize the collection
+                question.getIncorrectAnswers().size();
+            }
+
+            if (quiz.getStatus() == 3 &&
+                    quiz.getLastReviewedAt() != null &&
+                    quiz.getLastReviewedAt().isBefore(LocalDate.now())) {
+                quiz.setStatus(2);
+                quizRepository.save(quiz);
             }
         }
         return quizzes;
@@ -150,6 +157,8 @@ public class QuizService {
                 .title(title)
                 .keywords(keyword)
                 .questionType(questionType)
+                .status(1)  // 생성 직후 복습 완료 상태
+                .reviewCount(0)
                 .build();
         quizRepository.save(quiz);
 
@@ -236,9 +245,10 @@ public class QuizService {
         attempt.setScore(correctCount);
         quizAttemptRepository.save(attempt);
 
-        // 퀴즈 상태 및 마지막 복습일 갱신
-        quiz.setStatus(3);
-        quiz.setLastReviewedAt(LocalDate.now());
+        quiz.setReviewCount(quiz.getReviewCount() + 1);     // 무조건 증가
+        quiz.setLastReviewedAt(LocalDate.now());            // 오늘 복습했으므로
+        quiz.setStatus(3);                                   // 복습 완료 상태
+
         quizRepository.save(quiz);
 
         // 결과 반환
@@ -295,7 +305,6 @@ public class QuizService {
         if (!quiz.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("본인이 생성한 퀴즈만 삭제할 수 있습니다.");
         }
-
         quizRepository.delete(quiz);
     }
 }
