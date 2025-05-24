@@ -12,6 +12,7 @@ import group4.opensource_server.user.domain.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -158,5 +160,20 @@ public class QuizController {
 
         quizService.deleteQuiz(user, quizId);
         return ResponseEntity.ok("퀴즈 " + quizId + "번이 삭제되었습니다.");
+    }
+
+    @Operation(summary = "퀴즈 채점 결과 조회", description = "해당 퀴즈의 가장 최근 채점 결과를 반환합니다.")
+    @GetMapping("/result/{quizId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<QuizSubmitResultDto> getLatestQuizResult(
+            @PathVariable Long quizId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 없음: " + email));
+
+        QuizSubmitResultDto result = quizService.getLatestResultByQuizId(quizId, user);
+        return ResponseEntity.ok(result);
     }
 }
