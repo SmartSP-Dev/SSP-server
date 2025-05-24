@@ -322,4 +322,32 @@ public class QuizService {
             }
         }
     }
+
+    @Transactional(readOnly = true)
+    public QuizSubmitResultDto getLatestResultByQuizId(Long quizId, User user) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("해당 퀴즈가 존재하지 않습니다."));
+
+        QuizAttempt latestAttempt = quizAttemptRepository
+                .findTopByQuizIdAndUserIdOrderByAttemptTimeDesc(quizId, user.getId())
+                .orElseThrow(() -> new RuntimeException("해당 퀴즈에 대한 시도 기록이 없습니다."));
+
+        List<QuestionResult> results = questionResultRepository.findByQuizAttemptId(latestAttempt.getId());
+
+        List<QuizSubmitResultDto.QuestionResult> questionResults = results.stream()
+                .map(r -> new QuizSubmitResultDto.QuestionResult(
+                        r.getQuizQuestion().getQuizNumber(),
+                        r.getQuizQuestion().getQuestionTitle(),
+                        r.getUserAnswer(),
+                        r.getQuizQuestion().getCorrectAnswer(),
+                        r.isCorrect()
+                ))
+                .toList();
+
+        return QuizSubmitResultDto.builder()
+                .totalQuestions(questionResults.size())
+                .correctAnswers((int) questionResults.stream().filter(QuizSubmitResultDto.QuestionResult::isCorrect).count())
+                .questionResults(questionResults)
+                .build();
+    }
 }
