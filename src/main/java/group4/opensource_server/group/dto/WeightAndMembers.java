@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoDto {
-    private String name;
-    private int id;
+public class WeightAndMembers {
+    int weight;
+    List<String> members = new ArrayList<>();
 }

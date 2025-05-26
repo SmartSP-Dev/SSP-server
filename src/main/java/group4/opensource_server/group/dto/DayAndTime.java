@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
+import java.time.LocalTime;
+
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoDto {
-    private String name;
-    private int id;
+public class DayAndTime {
+    String dayOfWeek; // "MON", "TUE", ...
+    LocalTime time;
 }

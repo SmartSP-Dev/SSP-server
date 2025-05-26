@@ -1,10 +1,7 @@
 package group4.opensource_server.group.service;
 
 import group4.opensource_server.group.domain.*;
-import group4.opensource_server.group.dto.CreateGroupRequestDto;
-import group4.opensource_server.group.dto.SimpleGroupDto;
-import group4.opensource_server.group.dto.TimeBlockDto;
-import group4.opensource_server.group.dto.UserInfoDto;
+import group4.opensource_server.group.dto.*;
 import group4.opensource_server.group.repository.GroupMembersRepository;
 import group4.opensource_server.group.repository.GroupRepository;
 import group4.opensource_server.group.repository.TimeTablesRepository;
@@ -17,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -96,7 +95,7 @@ public class GroupService {
         return responseDto;
     }
 
-    public TimeBlockDto getTimeBlockWeight(String groupKey) {
+    public TimeBlockDto getTimeBlockAndWeight(String groupKey) {
         /* 테스트코드
         TimeTable 생성
         TimeTable timeTable = TimeTable.createTimeTable();
@@ -157,10 +156,59 @@ public class GroupService {
 
         // Map의 value들을 리스트로 만들어 Dto로 포장
         List<TimeBlock> resultList = new ArrayList<>(timeBlockMap.values());
+
+        // 가능한 사람 리스트 제거
+        for (TimeBlock block : resultList) {
+            block.setBlockMembers(Collections.emptyList());  // 또는 null
+        }
+
         return new TimeBlockDto(resultList);
+
     }
 
-    private String generateRandomKey(int length) {
+    public WeightAndMembers getWeightAndMembers(String groupKey, DayAndTime requestDto) {
+        Optional<Group> group = groupRepository.findByGroupKey(groupKey);
+
+        if (group.isEmpty()) {
+            throw new RuntimeException("입력한 그룹 키에 해당하는 그룹을 찾을 수 없습니다.");
+        }
+
+        int groupId = group.get().getGroupId();
+        List<TimeTables> timeTables = timeTablesRepository.findByGroupId(groupId);
+
+        DayOfWeekEnum reqDayOfWeek;
+        try {
+            reqDayOfWeek = DayOfWeekEnum.valueOf(requestDto.getDayOfWeek().toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("잘못된 요일 형식입니다. 요청값: " + requestDto.getDayOfWeek());
+        }
+
+        LocalTime reqTimeBlock = requestDto.getTime();
+        if (reqTimeBlock == null) {
+            throw new RuntimeException("시간(time)이 null입니다.");
+        }
+
+        int weight = 0;
+        List<String> members = new ArrayList<>();
+
+        for (TimeTables timeTable : timeTables) {
+            if (timeTable.getDayOfWeek() == reqDayOfWeek && timeTable.getTimeBlock().equals(reqTimeBlock)) {
+                User user = userRepository.findById(timeTable.getMemberId())
+                        .orElseThrow(() -> new RuntimeException("유저 서칭 오류: memberId=" + timeTable.getMemberId()));
+
+                members.add(user.getName());
+                weight++;
+            }
+        }
+
+        return new WeightAndMembers(weight, members);
+    }
+
+
+
+
+
+    public String generateRandomKey(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
 

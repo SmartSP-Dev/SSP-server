@@ -24,7 +24,7 @@ public class UserGroupService {
     @Autowired
     private GroupMembersRepository groupMembersRepository;
 
-    public List<SimpleGroupDto> getUserGroup(String userId) {
+    public List<SimpleGroupDto> getUserGroup(int userId) {
         /* 임시 코드
         List<SimpleGroupDto> userGroups = List.of(
                 new SimpleGroupDto(1, "스터디 그룹", "abcd1234"),
@@ -33,7 +33,7 @@ public class UserGroupService {
 
          */
 
-        int id = Integer.parseInt(userId);
+        int id = userId;
 
         List<SimpleGroupDto> userGroups = new ArrayList<>();
         List<GroupMembers> groupMembers = groupMembersRepository.findByMemberId(id);

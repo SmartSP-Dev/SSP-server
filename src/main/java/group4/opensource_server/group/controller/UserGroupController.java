@@ -2,7 +2,11 @@ package group4.opensource_server.group.controller;
 
 import group4.opensource_server.group.dto.SimpleGroupDto;
 import group4.opensource_server.group.service.UserGroupService;
+import group4.opensource_server.user.domain.User;
+import group4.opensource_server.user.domain.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,8 +18,16 @@ public class UserGroupController {
     @Autowired
     private UserGroupService userService;
 
-    @GetMapping("/when2meet/users/{user_id}/groups")
-    public List<SimpleGroupDto> getUserGroups(@PathVariable("user_id") String userId) {
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/when2meet/users/groups")
+    public List<SimpleGroupDto> getUserGroups(@AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
+        int userId = currentUser.getId();
+
         List<SimpleGroupDto> userGroups = userService.getUserGroup(userId);
 
         return userGroups;
