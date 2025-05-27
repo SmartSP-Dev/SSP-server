@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpSession; // ✅ 추가
+import jakarta.servlet.http.HttpSession; // 추가
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class GetFileController {
                         System.out.println("PDF 텍스트 추출 결과:");
                         for (int i = 0; i < contentPages.size(); i++) {
                             System.out.printf("Page %d:\n%s\n", i + 1, contentPages.get(i));
-                            finalResult.add(contentPages.get(i)); // ✅ OCR 결과 저장
+                            finalResult.add(contentPages.get(i)); //  OCR 결과 저장
                         }
                     }
                     else {
