@@ -11,10 +11,14 @@ import org.openqa.selenium.chrome.*;
 import org.openqa.selenium.support.ui.*;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.locks.*;
 import java.util.regex.*;
+
 
 @Service
 public class CalendarTimetableService {
@@ -36,12 +40,28 @@ public class CalendarTimetableService {
             try {
                 if (driver == null) {
                     WebDriverManager.chromedriver().setup();
+
                     ChromeOptions options = new ChromeOptions();
-                    options.addArguments("--disable-gpu");
-                    options.addArguments("--window-size=1920x1080");
-                    options.addArguments("--no-sandbox");
-                    options.addArguments("--disable-dev-shm-usage");
-                    options.addArguments("user-agent=Mozilla/5.0");
+                    options.addArguments(
+                            "--headless=new",
+                            "--disable-gpu",
+                            "--window-size=1920x1080",
+                            "--no-sandbox",
+                            "--disable-dev-shm-usage",
+                            "user-agent=Mozilla/5.0"
+                    );
+
+                    // 고유한 임시 프로필 디렉터리 생성
+                    try {
+                        Path tmpProfile = Files.createTempDirectory("chrome-user-data-");
+                        options.addArguments("--user-data-dir=" + tmpProfile.toAbsolutePath());
+                    } catch (IOException e) {
+                        throw new RuntimeException("크롬 프로필 임시 폴더 생성 실패", e);
+                    }
+
+                    // 크로스 오리진 이슈 방지
+                    options.addArguments("--remote-allow-origins=* ");
+
                     driver = new ChromeDriver(options);
                 }
             } finally {
@@ -107,8 +127,8 @@ public class CalendarTimetableService {
                     String day = days.get(tdIndex);
                     String subjectName = subject.getText();
 
-                    scheduleMap.putIfAbsent(day, new ArrayList<>());
-                    scheduleMap.get(day).add(new CalendarTimetableDto(timeSlots, subjectName));
+                    scheduleMap.computeIfAbsent(day, k -> new ArrayList<>())
+                            .add(new CalendarTimetableDto(timeSlots, subjectName));
                 }
             }
 
@@ -118,9 +138,9 @@ public class CalendarTimetableService {
         }
 
         List<Map<String, Object>> finalSchedules = new ArrayList<>();
-        for (Map.Entry<String, List<CalendarTimetableDto>> entry : scheduleMap.entrySet()) {
+        for (var entry : scheduleMap.entrySet()) {
             List<Map<String, Object>> subjectBlocks = new ArrayList<>();
-            for (CalendarTimetableDto item : entry.getValue()) {
+            for (var item : entry.getValue()) {
                 subjectBlocks.add(Map.of(
                         "subject", item.getSubject(),
                         "times", item.getTimes()
@@ -132,7 +152,6 @@ public class CalendarTimetableService {
         return Map.of("payload", Map.of("schedules", finalSchedules));
     }
 
-    // 크롤링 + 저장 (덮어쓰기)
     public Map<String, Object> crawlScheduleAndSave(User user, String url) {
         Map<String, Object> result = crawlSchedule(url);
         Object payload = result.get("payload");
@@ -143,7 +162,7 @@ public class CalendarTimetableService {
             EveryTimeTimetable timetable = timetableRepository.findByUser(user)
                     .orElse(EveryTimeTimetable.builder().user(user).build());
 
-            timetable.setTimetableJson(json); // 덮어쓰기
+            timetable.setTimetableJson(json);
             timetableRepository.save(timetable);
 
         } catch (JsonProcessingException e) {
@@ -153,7 +172,6 @@ public class CalendarTimetableService {
         return result;
     }
 
-    // 저장된 시간표만 조회
     public Map<String, Object> getSavedTimetable(User user) {
         EveryTimeTimetable timetable = timetableRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("저장된 시간표가 없습니다"));
