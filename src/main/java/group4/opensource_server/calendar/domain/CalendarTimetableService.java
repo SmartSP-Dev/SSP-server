@@ -42,6 +42,11 @@ public class CalendarTimetableService {
                     options.addArguments("--no-sandbox");
                     options.addArguments("--disable-dev-shm-usage");
                     options.addArguments("user-agent=Mozilla/5.0");
+
+                    // 고유한 user-data-dir 지정
+                    String uniqueUserDataDir = "/tmp/chrome-profile-" + UUID.randomUUID();
+                    options.addArguments("--user-data-dir=" + uniqueUserDataDir);
+
                     driver = new ChromeDriver(options);
                 }
             } finally {
