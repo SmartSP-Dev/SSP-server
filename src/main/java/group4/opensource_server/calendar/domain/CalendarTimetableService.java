@@ -45,6 +45,7 @@ public class CalendarTimetableService {
 
                     // 고유한 user-data-dir 지정
                     String uniqueUserDataDir = "/tmp/chrome-profile-" + UUID.randomUUID();
+                    System.out.println("Chrome user-data-dir: " + uniqueUserDataDir);
                     options.addArguments("--user-data-dir=" + uniqueUserDataDir);
 
                     driver = new ChromeDriver(options);
