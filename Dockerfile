@@ -1,4 +1,3 @@
-# Ubuntu + OpenJDK + Tesseract 설치
 FROM ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
@@ -7,6 +6,13 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-kor \
     tesseract-ocr-eng \
     libtesseract-dev \
+    chromium-browser \
+    chromium-chromedriver \
+    fonts-liberation \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libgbm1 \
     && apt-get clean
 
 WORKDIR /app
