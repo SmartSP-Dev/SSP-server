@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class TimeBlockDto {
     private List<TimeBlock> timeBlocks; // 240개
 
