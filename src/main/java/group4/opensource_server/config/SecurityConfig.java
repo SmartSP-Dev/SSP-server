@@ -49,6 +49,7 @@ public class SecurityConfig {
                                 "/when2meet/groups/{group_key}/group_key",
                                 "/when2meet/groups/{group_key}/timetable",
                                 "/when2meet/groups/{group_key}/timetable/weightAndMembers",
+                                "/when2meet/groups/{group_key}/usertimeblock",
                                 "/h2-console/**"
 
                         ).permitAll()

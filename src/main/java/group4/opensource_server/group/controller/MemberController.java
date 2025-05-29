@@ -58,4 +58,16 @@ public class MemberController {
 
         return responseDto;
     }
+
+    @GetMapping("/when2meet/groups/{group_key}/usertimeblock")
+    public TimeBlockDto getUserTimeBlock(@PathVariable("group_key") String groupKey, @AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("해당 이메일 유저 없음: " + email));
+        int userId = currentUser.getId();
+
+        TimeBlockDto responseDto = memberService.getUserTimeBlock(groupKey, userId);
+
+        return responseDto;
+    }
 }
