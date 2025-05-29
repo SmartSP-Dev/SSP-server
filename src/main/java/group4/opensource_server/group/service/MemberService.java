@@ -201,4 +201,37 @@ public class MemberService {
 
         return new SuccessResponseDto(true);
     }
+
+    public TimeBlockDto getUserTimeBlock(String groupKey, int userId) {
+        TimeBlockDto responseDto = new TimeBlockDto();
+
+        Group group = groupRepository.findByGroupKey(groupKey)
+                .orElseThrow(() -> new RuntimeException("해당 그룹 키를 가진 그룹이 없습니다."));
+        int groupId = group.getGroupId();
+
+        List<TimeTables> timeTables = timeTablesRepository.findByGroupIdAndMemberId(groupId, userId);
+
+        List<TimeBlock> resultList = new ArrayList<>();
+
+        for (TimeTables table : timeTables) {
+            TimeBlock block = new TimeBlock(
+                    table.getDayOfWeek().name(),
+                    table.getTimeBlock(),
+                    table.getWeight(),
+                    null
+            );
+
+            resultList.add(block);
+        }
+
+        for (TimeBlock block : resultList) {
+            block.setBlockMembers(Collections.emptyList());
+        }
+
+        responseDto.setTimeBlocks(resultList);
+
+        return responseDto;
+    }
+
+
 }

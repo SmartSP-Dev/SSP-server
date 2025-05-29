@@ -1,12 +1,9 @@
 package group4.opensource_server.config;
 
-import group4.opensource_server.jwt.JwtAuthenticationEntryPoint;
 import group4.opensource_server.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -25,32 +22,43 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtAuthenticationEntryPoint jwtEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
+                .formLogin(form -> form.disable()) // 🔥 Spring Security 기본 로그인폼 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/", "/auth/**", "/css/**", "/js/**",
-                                "/images/**", "/favicon.ico", "/webjars/**",
-                                "/error", "/calendar/**", "/files/upload",
-                                "/uploadSuccess", "/uploadFailure",
-                                "/returnOCRResult", "/quiz/**",
-                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+                                "/",                         // index.html 경로
+                                "/auth/**",                 // 로그인 API
+                                "/css/**", "/js/**",        // 정적 자원
+                                "/images/**", "/favicon.ico",
+                                "/webjars/**", "/error",     // 필수 자원
+                                "/calendar/**",
+                                "/files/upload",           // 파일 업로드 부분을 임시로 열어놓았습니다
+                                "/uploadSuccess",
+                                "/uploadFailure",
+                                "/returnOCRResult",
+                                "/when2meet/users/{user_id}/groups",
+                                "/when2meet/groups",
+                                "/when2meet/groups/{group_key}/members",
+                                "/when2meet/groups/{group_key}/timetable",
+                                "/when2meet/groups/{group_key}",
+                                "/when2meet/groups/{group_key}/group_leader",
+                                "/when2meet/groups/{group_key}/group_key",
+                                "/when2meet/groups/{group_key}/timetable",
+                                "/when2meet/groups/{group_key}/timetable/weightAndMembers",
+                                "/h2-console/**"
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(jwtEntryPoint)
-                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
