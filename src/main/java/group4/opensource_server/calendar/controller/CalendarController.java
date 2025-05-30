@@ -27,7 +27,7 @@ public class CalendarController {
     // 크롤링 + 저장
     @Operation(summary = "에브리타임 시간표 크롤링 및 저장",
             description = "에브리타임 URL을 입력받아 시간표를 크롤링하고 해당 유저에게 저장합니다.")
-    @GetMapping("/timetable")
+    @PostMapping("/timetable")
     @PreAuthorize("isAuthenticated()")
     public Map<String, Object> crawlAndSaveTimetable(@RequestParam String url) {
         String email = getCurrentUserEmail();
