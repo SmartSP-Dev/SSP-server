@@ -127,7 +127,9 @@ public class MemberService {
             entry.setStartDate(startDate);  // 기존 시간표의 startDate
             entry.setEndDate(endDate);      // 기존 시간표의 endDate
 
-            timeTablesRepository.save(entry);
+            entry.setAvailable(true);
+
+            timeTablesRepository.saveAndFlush(entry);
         }
 
         return new SuccessResponseDto(true);
