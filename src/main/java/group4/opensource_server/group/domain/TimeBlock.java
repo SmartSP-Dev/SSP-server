@@ -1,5 +1,6 @@
 package group4.opensource_server.group.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import group4.opensource_server.group.dto.UserInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 public class TimeBlock {
     String dayOfWeek; // "MON", "TUE", ...
+    @JsonFormat(pattern = "HH:mm")
     LocalTime time; // "08:00", "05:30", ... "22:30". 하루에 총 30개? 일주일에 총 210개?
     int weight = 0;
     List<UserInfoDto> blockMembers = new LinkedList<>();
