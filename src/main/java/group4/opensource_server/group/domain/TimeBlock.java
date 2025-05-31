@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.LinkedList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -15,7 +16,7 @@ public class TimeBlock {
     String dayOfWeek; // "MON", "TUE", ...
     LocalTime time; // "08:00", "05:30", ... "22:30". 하루에 총 30개? 일주일에 총 210개?
     int weight = 0;
-    List<UserInfoDto> blockMembers;
+    List<UserInfoDto> blockMembers = new LinkedList<>();
 
     public void addBlockMembers(UserInfoDto userInfoDto) {
         blockMembers.add(userInfoDto);
