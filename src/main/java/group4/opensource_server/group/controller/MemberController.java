@@ -64,6 +64,7 @@ public class MemberController {
         return responseDto;
     }
 
+    @Operation(summary = "웬투밋 개인 등록 시간표 확인", description = "유저가 그룹에 등록한 웬투밋 일정을 확인합니다.")
     @GetMapping("/when2meet/groups/{group_key}/usertimeblock")
     public TimeBlockDto getUserTimeBlock(@PathVariable("group_key") String groupKey, @AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
