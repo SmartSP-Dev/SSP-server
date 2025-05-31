@@ -59,26 +59,58 @@ public class QuizService {
 
     // PDF 텍스트 기반 퀴즈 생성 메서드
     public JSONObject generateQuizzesFromText(String text, String keyword, QuestionType questionType) {
-        String trimmedText = text.length() > 15000 ? text.substring(0, 15000) : text;
+        JSONArray quizzes = new JSONArray();
+        int textLength = text.length();
 
+        if (textLength <= 10000) {
+            // 전체 텍스트에서 10문제
+            quizzes = getQuizChunk(text, keyword, questionType, 1, 10);
+
+        } else if (textLength <= 20000) {
+            // 2등분 → 5문제씩
+            String part1 = text.substring(0, 10000);
+            String part2 = text.substring(10000);
+
+            quizzes.putAll(getQuizChunk(part1, keyword, questionType, 1, 5));
+            quizzes.putAll(getQuizChunk(part2, keyword, questionType, 6, 10));
+
+        } else {
+            // 3등분 → 3 + 3 + 4문제
+            String part1 = text.substring(0, 10000);
+            String part2 = text.substring(10000, 20000);
+            String part3 = text.substring(20000, Math.min(30000, text.length()));
+
+            quizzes.putAll(getQuizChunk(part1, keyword, questionType, 1, 3));
+            quizzes.putAll(getQuizChunk(part2, keyword, questionType, 4, 6));
+            quizzes.putAll(getQuizChunk(part3, keyword, questionType, 7, 10));
+        }
+
+        JSONObject result = new JSONObject();
+        result.put("quizzes", quizzes);
+        return result;
+    }
+
+    private JSONArray getQuizChunk(String textChunk, String keyword, QuestionType questionType, int startNum, int endNum) {
         StringBuilder promptBuilder = new StringBuilder();
 
         promptBuilder.append("[사용자 프롬프트]\n");
-        promptBuilder.append("아래 텍스트를 참고하여, 키워드 '")
-                .append(keyword)
-                .append("'에 관한 퀴즈를 총 **10문제** 생성해 주세요.\n")
+        promptBuilder.append("아래 텍스트를 참고하여, 해당 내용을 학습하는 학습자가 이해도를 점검할 수 있도록 퀴즈를 총 **")
+                .append(endNum - startNum + 1).append("문제** 생성해 주세요.\n")
                 .append("문제 유형: ").append(questionType).append("\n")
-                .append("각 퀴즈 문항은 서로 다른 문맥, 세부 정보, 또는 응용 사례를 기반으로 생성해 주세요.\n")
-                .append("- 유사하거나 반복적인 문장/형식이 없도록 주의해 주세요.\n")
-                .append("- 각 문제에는 반드시 \"number\" 필드를 추가하여 1부터 10까지 번호를 부여해 주세요.\n")
-                .append("- JSON 배열의 각 요소는 다음 필드를 포함해야 합니다:\n")
-                .append("  - \"number\" (문제 번호, 정수)\n");
+                .append("절대로 정답이 같은 단어로 반복되지 않도록 주의해 주세요.\n")
+                .append("정답은 문맥에서 중요하게 언급된 용어, 개념을 사용해 주세요.\n")
+                .append("유사하거나 반복적인 문장/형식 절대 없이 다양하게 구성해 주세요.\n")
+                .append("각 문제에는 반드시 \"number\" 필드를 추가하여 번호를 ").append(startNum).append("~").append(endNum).append(" 범위로 부여해 주세요.\n");
 
         if (questionType == QuestionType.FILL_BLANK) {
-            promptBuilder.append("빈칸넣기 문제의 정답과 오답은 반드시 **단어**로만 구성되어야 하며, 문장이 답이 되지 않도록 하세요.\n");
+            promptBuilder.append("※ 규칙 (반드시 지켜야 함):\n");
+            promptBuilder.append("- 정답과 오답은 모두 한글 또는 영어 단어여야 하며, 문장이나 구문은 절대 포함하지 마세요.\n");
+            promptBuilder.append("- 정답은 반드시 용언(한다, 이다 등)을 제외한 명사형이어야 하며,\n");
+            promptBuilder.append("  문제 문장의 빈칸에도 해당 단어만 들어가 자연스럽게 완성되어야 합니다.\n");
+            promptBuilder.append("- 예: \"상향한다\" → 문제는 \"___한다\", 정답은 \"상향\"\n");
         }
 
-        promptBuilder.append("\n[참고 텍스트]\n").append(trimmedText).append("\n\n");
+        promptBuilder.append("\n[참고 텍스트]\n").append(textChunk).append("\n\n");
 
         switch (questionType) {
             case MULTIPLE_CHOICE:
@@ -91,7 +123,7 @@ public class QuizService {
                 break;
             case FILL_BLANK:
                 promptBuilder.append("출력 형식 예시: { \"type\": \"fill_blank\", \"question\": \"문장 ___\", ")
-                        .append("\"correct_answer\": \"정답\", \"incorrect_answers\": [\"오답1\", \"오답2\", \"오답3\"] }\n");
+                        .append("\"correct_answer\": \"정답\" }\n");
                 break;
             default:
                 promptBuilder.append("반드시 위의 형식 중 하나를 사용하세요.\n");
@@ -99,7 +131,8 @@ public class QuizService {
 
         promptBuilder.append("\n[중요] 반드시 JSON 배열 형태로만 출력하세요. 다른 설명이나 문장 없이, JSON 배열만 출력해야 합니다.\n");
 
-        return callOpenAiApi(promptBuilder.toString());
+        JSONObject response = callOpenAiApi(promptBuilder.toString());
+        return response.optJSONArray("quizzes") != null ? response.getJSONArray("quizzes") : new JSONArray();
     }
 
     // OpenAI API 호출 메서드

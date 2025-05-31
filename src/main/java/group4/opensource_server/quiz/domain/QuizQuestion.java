@@ -26,10 +26,14 @@ public class QuizQuestion {
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
+    @Column(columnDefinition = "TEXT")
     private String questionTitle;
+
     private String questionContent;
+
     @Column(name = "quiz_number")
     private int quizNumber;
+
     private String correctAnswer;
 
     @Convert(converter = StringListConverter.class)
