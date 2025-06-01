@@ -69,23 +69,19 @@ public class MemberService {
     }
 
     public SuccessResponseDto registerTimeTable(String groupKey, TimeBlockDto timeTableDto, int userId) {
-        System.out.println("[registerTimeTable] Called with groupKey = " + groupKey + ", userId = " + userId);
+        //System.out.println("[registerTimeTable] Called with groupKey = " + groupKey + ", userId = " + userId);
 
         Group group = groupRepository.findByGroupKey(groupKey)
                 .orElseThrow(() -> new RuntimeException("해당 그룹 키를 가진 그룹이 없습니다."));
         int groupId = group.getGroupId();
-        System.out.println("[registerTimeTable] Found groupId = " + groupId);
+        //System.out.println("[registerTimeTable] Found groupId = " + groupId);
 
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) {
-            System.out.println("[registerTimeTable] User not found for userId = " + userId);
-            throw new RuntimeException("해당 ID의 사용자가 존재하지 않습니다.");
-        }
-        User user = userOpt.get();
-        System.out.println("[registerTimeTable] Found user = " + user.getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("해당 ID의 사용자가 존재하지 않습니다."));
+        //System.out.println("[registerTimeTable] Found user = " + user.getName());
 
         List<TimeTables> existingTimeTables = timeTablesRepository.findByGroupId(groupId);
-        System.out.println("[registerTimeTable] Found existing timetables: " + existingTimeTables.size());
+        //System.out.println("[registerTimeTable] Found existing timetables: " + existingTimeTables.size());
 
         LocalDate startDate;
         LocalDate endDate;
@@ -93,22 +89,33 @@ public class MemberService {
         if (!existingTimeTables.isEmpty()) {
             startDate = existingTimeTables.get(0).getStartDate();
             endDate = existingTimeTables.get(0).getEndDate();
-            System.out.println("[registerTimeTable] startDate = " + startDate + ", endDate = " + endDate);
         } else {
             startDate = group.getStartDate();
             endDate = group.getEndDate();
-            System.out.println("[registerTimeTable] Using group's startDate = " + startDate + ", endDate = " + endDate);
         }
 
         int deleted = timeTablesRepository.deleteByGroupIdAndMemberId(groupId, userId);
-        System.out.println("[registerTimeTable] Deleted previous timetable entries = " + deleted);
+        //System.out.println("[registerTimeTable] Deleted previous timetable entries = " + deleted);
+
+        // user name이 null이면 임시 이름 부여
+        if (user.getName() == null) {
+            user.setName("tempUser");
+        }
+
+        UserInfoDto currentUser = new UserInfoDto(user.getName(), userId);
 
         for (TimeBlock block : timeTableDto.getTimeBlocks()) {
+            // ★ 서버에서 blockMembers를 직접 생성 및 주입
+            List<UserInfoDto> blockMembers = new ArrayList<>();
+            blockMembers.add(currentUser);
+            block.setBlockMembers(blockMembers);
+
+            // 이후 기존 로직 그대로 사용
             boolean userSelected = block.getBlockMembers().stream()
                     .anyMatch(member -> member.getId() == userId);
 
-            System.out.println("[registerTimeTable] Checking block " + block.getDayOfWeek() + "-" + block.getTime() +
-                    ", userSelected = " + userSelected);
+            //System.out.println("[registerTimeTable] Checking block " + block.getDayOfWeek() + "-" + block.getTime() +
+            //        ", userSelected = " + userSelected);
 
             if (!userSelected) continue;
 
@@ -117,18 +124,18 @@ public class MemberService {
             entry.setMemberId(userId);
             entry.setDayOfWeek(DayOfWeekEnum.valueOf(block.getDayOfWeek()));
             entry.setTimeBlock(block.getTime());
-            entry.setWeight(1); // 혹은 필요한 로직으로 수정
+            entry.setWeight(1); // 필요한 경우 가중치 변경 가능
             entry.setStartDate(startDate);
             entry.setEndDate(endDate);
             entry.setAvailable(true);
 
             timeTablesRepository.saveAndFlush(entry);
-
-            System.out.println("[registerTimeTable] Saved entry: " + entry.getDayOfWeek() + "-" + entry.getTimeBlock());
+            //System.out.println("[registerTimeTable] Saved entry: " + entry.getDayOfWeek() + "-" + entry.getTimeBlock());
         }
 
         return new SuccessResponseDto(true);
     }
+
 
 
 
