@@ -331,6 +331,7 @@ public class QuizService {
         return new WeeklyQuizSummaryDto(total, reviewed, notReviewed);
     }
 
+    @Transactional
     public void deleteQuiz(User user, Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("퀴즈를 찾을 수 없습니다."));
@@ -338,6 +339,20 @@ public class QuizService {
         if (!quiz.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("본인이 생성한 퀴즈만 삭제할 수 있습니다.");
         }
+
+        // 1. 퀴즈 시도 결과 삭제 (question_results)
+        List<QuizAttempt> attempts = quizAttemptRepository.findByQuiz(quiz);
+        for (QuizAttempt attempt : attempts) {
+            questionResultRepository.deleteByQuizAttempt(attempt);
+        }
+
+        // 2. 퀴즈 시도 삭제 (quiz_attempts)
+        quizAttemptRepository.deleteByQuiz(quiz);
+
+        // 3. 퀴즈 문제 삭제 (quiz_questions)
+        quizQuestionRepository.deleteByQuiz(quiz);
+
+        // 4. 퀴즈 삭제
         quizRepository.delete(quiz);
     }
 
