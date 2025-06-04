@@ -94,6 +94,7 @@ public class QuizService {
         StringBuilder promptBuilder = new StringBuilder();
 
         promptBuilder.append("[사용자 프롬프트]\n");
+        promptBuilder.append("- 생성된 문제는 반드시 '").append(keyword).append("' 키워드와 연관된 내용을 중심으로 출제해 주세요.\n");
         promptBuilder.append("아래 텍스트를 참고하여, 해당 내용을 학습하는 학습자가 이해도를 점검할 수 있도록 퀴즈를 총 **")
                 .append(endNum - startNum + 1).append("문제** 생성해 주세요.\n")
                 .append("문제 유형: ").append(questionType).append("\n")
@@ -143,7 +144,7 @@ public class QuizService {
             headers.set("Content-Type", "application/json");
 
             JSONObject requestBody = new JSONObject();
-            requestBody.put("model", "gpt-3.5-turbo");
+            requestBody.put("model", "gpt-4o");
             JSONArray messages = new JSONArray();
             messages.put(new JSONObject().put("role", "system").put("content", "너는 퀴즈 문제를 생성하는 친절한 도우미야."));
             messages.put(new JSONObject().put("role", "user").put("content", prompt));
@@ -161,6 +162,10 @@ public class QuizService {
             JSONObject messageObj = choicesArray.getJSONObject(0).getJSONObject("message");
             String responseText = messageObj.getString("content");
 
+            // 코드 블럭 제거 (시작과 끝 모두 제거)
+            if (responseText.startsWith("```json")) {
+                responseText = responseText.replaceFirst("^```json\\s*", "").replaceFirst("\\s*```\\s*$", "");
+            }
 
             responseText = responseText.trim();
             if (responseText.startsWith("{")) {
