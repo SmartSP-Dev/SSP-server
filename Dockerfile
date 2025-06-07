@@ -46,6 +46,4 @@ COPY build/libs/*.jar app.jar
 
 ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:/usr/lib/jni"
 
-ENTRYPOINT ["java",
-  "-Djava.library.path=/usr/lib/x86_64-linux-gnu:/usr/lib/jni",
-  "-jar","app.jar"]
+ENTRYPOINT ["java", "-Djava.library.path=/usr/lib/x86_64-linux-gnu:/usr/lib/jni", "-jar", "app.jar"]
