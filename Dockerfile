@@ -1,12 +1,18 @@
+# Ubuntu + OpenJDK + Tesseract 설치
+FROM ubuntu:22.04
 
-# 베이스 이미지 (예: OpenJDK 21)
-FROM eclipse-temurin:21-jre
+RUN apt-get update && apt-get install -y \
+    openjdk-21-jre \
+    tesseract-ocr \
+    tesseract-ocr-kor \
+    tesseract-ocr-eng \
+    libtesseract-dev \
+    && apt-get clean
 
-# JAR 파일을 컨테이너 내에 복사
+WORKDIR /app
 COPY build/libs/*.jar app.jar
 
-# 애플리케이션 포트 설정 (예: 8080)
-EXPOSE 443
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu"
 
-# JAR 파일 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 핵심 실행 명령어
+ENTRYPOINT ["java", "-Djava.library.path=/usr/lib/x86_64-linux-gnu", "-jar", "app.jar"]

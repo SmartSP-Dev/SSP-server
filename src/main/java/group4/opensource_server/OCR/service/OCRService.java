@@ -24,7 +24,7 @@ public class OCRService {
     @PostConstruct
     public void init() {
         tesseract = new Tesseract();
-        tesseract.setDatapath(dataPath);
+        tesseract.setDatapath("/opt/homebrew/share/tessdata");
         tesseract.setLanguage("eng+kor");
         tesseract.setPageSegMode(6);  // 페이지 세그먼트 모드
         tesseract.setOcrEngineMode(1);  // OCR 엔진 모드 설정

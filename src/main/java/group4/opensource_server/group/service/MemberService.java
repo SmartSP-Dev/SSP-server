@@ -69,69 +69,75 @@ public class MemberService {
     }
 
     public SuccessResponseDto registerTimeTable(String groupKey, TimeBlockDto timeTableDto, int userId) {
-        // 1. 그룹 조회
+        //System.out.println("[registerTimeTable] Called with groupKey = " + groupKey + ", userId = " + userId);
+
         Group group = groupRepository.findByGroupKey(groupKey)
                 .orElseThrow(() -> new RuntimeException("해당 그룹 키를 가진 그룹이 없습니다."));
         int groupId = group.getGroupId();
+        //System.out.println("[registerTimeTable] Found groupId = " + groupId);
 
-        // 1-1. 사용자 정보 조회 및 Dto 변환
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 ID의 사용자가 존재하지 않습니다."));
-        UserInfoDto userInfoDto = new UserInfoDto(user.getName(), user.getId());
+        //System.out.println("[registerTimeTable] Found user = " + user.getName());
 
-        // 2. 기존 그룹의 전체 시간표 조회
         List<TimeTables> existingTimeTables = timeTablesRepository.findByGroupId(groupId);
+        //System.out.println("[registerTimeTable] Found existing timetables: " + existingTimeTables.size());
 
-        // 3. 기존 상태 재구성: "MON-08:00" -> Set<userId>
-        Map<String, Set<Integer>> blockUserMap = new HashMap<>();
-        LocalDate startDate = null;
-        LocalDate endDate = null;
+        LocalDate startDate;
+        LocalDate endDate;
 
-        // 기존 시간표에서 startDate와 endDate를 가져옴 (예시로 첫 번째 시간표에서 값 사용)
         if (!existingTimeTables.isEmpty()) {
-            TimeTables firstEntry = existingTimeTables.get(0);
-            startDate = firstEntry.getStartDate(); // 첫 번째 시간표의 startDate
-            endDate = firstEntry.getEndDate();     // 첫 번째 시간표의 endDate
+            startDate = existingTimeTables.get(0).getStartDate();
+            endDate = existingTimeTables.get(0).getEndDate();
+        } else {
+            startDate = group.getStartDate();
+            endDate = group.getEndDate();
         }
 
-        // 4. 자기 시간표 삭제
-        timeTablesRepository.deleteByGroupIdAndMemberId(groupId, userId);
+        int deleted = timeTablesRepository.deleteByGroupIdAndMemberId(groupId, userId);
+        //System.out.println("[registerTimeTable] Deleted previous timetable entries = " + deleted);
 
-        // 5. 사용자가 선택한 블록마다 저장
+        // user name이 null이면 임시 이름 부여
+        if (user.getName() == null) {
+            user.setName("tempUser");
+        }
+
+        UserInfoDto currentUser = new UserInfoDto(user.getName(), userId);
+
         for (TimeBlock block : timeTableDto.getTimeBlocks()) {
-            boolean userSelected = block.getBlockMembers()
-                    .stream()
+            // ★ 서버에서 blockMembers를 직접 생성 및 주입
+            List<UserInfoDto> blockMembers = new ArrayList<>();
+            blockMembers.add(currentUser);
+            block.setBlockMembers(blockMembers);
+
+            // 이후 기존 로직 그대로 사용
+            boolean userSelected = block.getBlockMembers().stream()
                     .anyMatch(member -> member.getId() == userId);
+
+            //System.out.println("[registerTimeTable] Checking block " + block.getDayOfWeek() + "-" + block.getTime() +
+            //        ", userSelected = " + userSelected);
 
             if (!userSelected) continue;
 
-            String key = block.getDayOfWeek() + "-" + block.getTime().toString();
-
-            // 가중치 계산
-            int weight = blockUserMap.getOrDefault(key, new HashSet<>()).size() + 1;
-
-            // blockMembers 업데이트
-            Set<Integer> members = blockUserMap.getOrDefault(key, new HashSet<>());
-            members.add(userId);
-            blockUserMap.put(key, members);
-
-            // DB 저장
             TimeTables entry = new TimeTables();
             entry.setGroupId(groupId);
             entry.setMemberId(userId);
             entry.setDayOfWeek(DayOfWeekEnum.valueOf(block.getDayOfWeek()));
             entry.setTimeBlock(block.getTime());
-            entry.setWeight(weight);
+            entry.setWeight(1); // 필요한 경우 가중치 변경 가능
+            entry.setStartDate(startDate);
+            entry.setEndDate(endDate);
+            entry.setAvailable(true);
 
-            // 기존 시간표의 startDate와 endDate 설정
-            entry.setStartDate(startDate);  // 기존 시간표의 startDate
-            entry.setEndDate(endDate);      // 기존 시간표의 endDate
-
-            timeTablesRepository.save(entry);
+            timeTablesRepository.saveAndFlush(entry);
+            //System.out.println("[registerTimeTable] Saved entry: " + entry.getDayOfWeek() + "-" + entry.getTimeBlock());
         }
 
         return new SuccessResponseDto(true);
     }
+
+
+
 
 
 

@@ -35,6 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
-*.yml
 
 .DS_Store
+
+# .yml
+src/main/resources/application.yml
+
+/temp_for_upload

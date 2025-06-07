@@ -4,6 +4,8 @@ import group4.opensource_server.group.dto.SimpleGroupDto;
 import group4.opensource_server.group.service.UserGroupService;
 import group4.opensource_server.user.domain.User;
 import group4.opensource_server.user.domain.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +23,7 @@ public class UserGroupController {
     @Autowired
     private UserRepository userRepository;
 
+    @Operation(summary = "가입 그룹 가져오기", description = "사용자가 가입한 웬투밋 그룹의 간단한 정보를 가져옵니다.")
     @GetMapping("/when2meet/users/groups")
     public List<SimpleGroupDto> getUserGroups(@AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
