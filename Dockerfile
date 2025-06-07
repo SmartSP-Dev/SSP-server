@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libopencv-dev \
     libopencv4.5-java \
+    libopencv4.5-jni \
     fonts-liberation \
     libnss3 \
     libxss1 \
@@ -43,6 +44,8 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') \
 WORKDIR /app
 COPY build/libs/*.jar app.jar
 
-ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu"
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:/usr/lib/jni"
 
-ENTRYPOINT ["java", "-Djava.library.path=/usr/lib/x86_64-linux-gnu", "-jar", "app.jar"]
+ENTRYPOINT ["java",
+  "-Djava.library.path=/usr/lib/x86_64-linux-gnu:/usr/lib/jni",
+  "-jar","app.jar"]
