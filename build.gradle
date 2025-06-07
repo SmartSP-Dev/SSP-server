@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:3.0.4'
 
     // openCV_ljj
-    implementation 'org.openpnp:opencv:4.5.1-0'
+    implementation 'org.openpnp:opencv:4.5.4-0'
     //implementation files('libs/opencv-4110.jar')
 
     implementation 'org.json:json:20240303'
