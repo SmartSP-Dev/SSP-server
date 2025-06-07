@@ -2,6 +2,7 @@ package group4.opensource_server.OCR.service;
 
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -15,7 +16,12 @@ import java.util.ArrayList;
 public class OCRService {
     private Tesseract tesseract;
 
+    @Autowired
+    private PreprocessingImageService preprocessingImageService;
+
+
     public OCRService() {
+
         tesseract = new Tesseract();
         tesseract.setDatapath("/opt/homebrew/share/tessdata");
         tesseract.setLanguage("eng+kor");
@@ -35,6 +41,8 @@ public class OCRService {
 
                 return ocrList;
             }
+
+            image = preprocessingImageService.preprocess(image);
 
             // Tesseract로 OCR 수행
             String content = tesseract.doOCR(image);
