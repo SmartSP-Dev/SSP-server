@@ -3,6 +3,7 @@ package group4.opensource_server.OCR.service;
 import jakarta.annotation.PostConstruct;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,9 @@ public class OCRService {
         tesseract.setOcrEngineMode(1);  // OCR 엔진 모드 설정
     }
 
+    @Autowired
+    private PreprocessingImageService preprocessingImageService;
+
     public List<String> ImageToText(File file) {
         List<String> ocrList = new ArrayList<String>();
 
@@ -41,6 +45,8 @@ public class OCRService {
 
                 return ocrList;
             }
+
+            image = preprocessingImageService.preprocess(image);
 
             // Tesseract로 OCR 수행
             String content = tesseract.doOCR(image);
