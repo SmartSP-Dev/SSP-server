@@ -63,14 +63,6 @@ jobs:
       DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
       DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
       DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
-      APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
-      APPLE_REDIRECT_URI: ${{ secrets.APPLE_REDIRECT_URI }}
-      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
-      TESSERACT_DATAPATH: ${{ secrets.TESSERACT_DATAPATH }}
-      SSL_KEY: ${{ secrets.SSL_KEY }}
     steps:
       - name: Deploy Docker image on EC2
         uses: appleboy/ssh-action@master
@@ -84,39 +76,37 @@ jobs:
             #!/bin/bash
             echo "Stopping and removing old container..."
             docker rm -f opensource_server || true
-
+            
             echo "Pruning unused Docker objects (images, containers, volumes)…"
             docker system prune -a -f
-
+            
             echo "Pulling latest Docker image..."
-            docker pull ${DOCKER_IMAGE_NAME}:latest
-
+            docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+            
             echo "Starting new container..."
             CMD="docker run -d --name opensource_server -p 8080:8080 \
               -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
-              -e KAKAO_REDIRECT_URI=\"${KAKAO_REDIRECT_URI}\" \
-              -e KAKAO_API_KEY=\"${KAKAO_API_KEY}\" \
-              -e OPENAI_API_KEY=\"${OPENAI_API_KEY}\" \
-              -e APPLE_TEAM_ID=\"${APPLE_TEAM_ID}\" \
-              -e APPLE_KEY_ID=\"${APPLE_KEY_ID}\" \
-              -e APPLE_CLIENT_ID=\"${APPLE_CLIENT_ID}\" \
-              -e APPLE_REDIRECT_URI=\"${APPLE_REDIRECT_URI}\" \
-              -e APPLE_PRIVATE_KEY=\"${APPLE_PRIVATE_KEY}\" \
-              -e JWT_SECRET_KEY=\"${JWT_SECRET_KEY}\" \
-              -e DATASOURCE_URL=\"${DATASOURCE_URL}\" \
-              -e DATASOURCE_USERNAME=\"${DATASOURCE_USERNAME}\" \
-              -e DATASOURCE_PASSWORD=\"${DATASOURCE_PASSWORD}\" \
-              -e TESSERACT_DATAPATH=\"${TESSERACT_DATAPATH}\" \
+              -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
+              -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
+              -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+              -e APPLE_TEAM_ID="${{secrets.APPLE_TEAM_ID}}" \
+              -e APPLE_KEY_ID="${{secrets.APPLE_KEY_ID}}" \
+              -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
+              -e APPLE_REDIRECT_URI="${{secrets.APPLE_REDIRECT_URI}}" \
+              -e APPLE_PRIVATE_KEY="${{secrets.APPLE_PRIVATE_KEY}}" \
+              -e JWT_SECRET_KEY="${{secrets.JWT_SECRET_KEY}}" \
+              -e DATASOURCE_URL="${{secrets.DATASOURCE_URL}}" \
+              -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
+              -e DATASOURCE_PASSWORD="${{secrets.DATASOURCE_PASSWORD}}" \
+              -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
               -e SSL_ENABLED=true \
-              -e SSL_KEY=\"${SSL_KEY}\" \
-              ${DOCKER_IMAGE_NAME}:latest"
-
-            # Save full command (with secrets substituted) for debugging
+              -e SSL_KEY=${{secrets.SSL_KEY}} \
+              ${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+            
             echo "$CMD" > /tmp/last_docker_run.sh
             chmod +x /tmp/last_docker_run.sh
-
-            # Execute the saved command
+            
             /tmp/last_docker_run.sh
-
+            
             echo "Deployment complete."
             exit 0
