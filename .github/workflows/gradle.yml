@@ -103,7 +103,7 @@ jobs:
               -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
               -e SSL_ENABLED=true \
               -e SSL_KEY=${{secrets.SSL_KEY}} \
-              ${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+              ${{ secrets.DOCKER_IMAGE_NAME }}:latest
             EOF
             
             chmod +x /tmp/last_docker_run.sh
