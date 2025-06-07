@@ -84,7 +84,9 @@ jobs:
             docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:latest
             
             echo "Starting new container..."
-            CMD="docker run -d --name opensource_server -p 8080:8080 \
+            
+            cat <<EOF > /tmp/last_docker_run.sh
+            docker run -d --name opensource_server -p 8080:8080 \
               -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
               -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
               -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
@@ -102,11 +104,14 @@ jobs:
               -e SSL_ENABLED=true \
               -e SSL_KEY=${{secrets.SSL_KEY}} \
               ${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+            EOF
             
-            echo "$CMD"
-            echo "$CMD" > /tmp/last_docker_run.sh
             chmod +x /tmp/last_docker_run.sh
-            
+
+            echo "Contents of the generated script:"
+            cat /tmp/last_docker_run.sh
+
+            echo "Executing the run script..."
             /tmp/last_docker_run.sh
             
             echo "Deployment complete."
