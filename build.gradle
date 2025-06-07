@@ -57,7 +57,7 @@ dependencies {
 
     // openCV_ljj
     implementation 'org.openpnp:opencv:4.5.1-0'
-    implementation files('libs/opencv-4110.jar')
+    //implementation files('libs/opencv-4110.jar')
 
     implementation 'org.json:json:20240303'
 }
