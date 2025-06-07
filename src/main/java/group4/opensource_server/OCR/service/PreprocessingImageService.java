@@ -13,6 +13,7 @@ import java.awt.image.WritableRaster;
 public class PreprocessingImageService {
 
     static {
+        nu.pattern.OpenCV.loadLocally();
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
