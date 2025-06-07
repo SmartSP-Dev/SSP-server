@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libopencv-dev \
     libopencv4.5-java \
-    libopencv4.5-jni \
     fonts-liberation \
     libnss3 \
     libxss1 \
