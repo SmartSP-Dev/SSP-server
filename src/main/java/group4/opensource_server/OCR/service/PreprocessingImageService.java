@@ -14,7 +14,7 @@ public class PreprocessingImageService {
 
     static {
         nu.pattern.OpenCV.loadLocally();
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
     public BufferedImage preprocess(BufferedImage image) {
