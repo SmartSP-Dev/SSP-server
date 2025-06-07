@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-kor \
     tesseract-ocr-eng \
     libtesseract-dev \
+    libopencv-dev \
+    libopencv4.5-java \
     fonts-liberation \
     libnss3 \
     libxss1 \
@@ -35,7 +37,7 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') \
     && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
     && mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver \
     && chmod +x /usr/local/bin/chromedriver \
-    && rm -rf /tmp/chromedriver.zip /usr/local/bin/chromedriver-linux64 \
+    && rm -rf /tmp/chromedriver.zip /usr/local/bin/chromedriver-linux64
 
 # 작업 디렉토리 설정
 WORKDIR /app
