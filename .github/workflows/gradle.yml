@@ -103,6 +103,7 @@ jobs:
               -e SSL_KEY=${{secrets.SSL_KEY}} \
               ${{ secrets.DOCKER_IMAGE_NAME }}:latest"
             
+            echo "$CMD"
             echo "$CMD" > /tmp/last_docker_run.sh
             chmod +x /tmp/last_docker_run.sh
             
