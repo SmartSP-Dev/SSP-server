@@ -1,9 +1,7 @@
 package group4.opensource_server.OCR.service;
 
-import jakarta.annotation.PostConstruct;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -17,13 +15,9 @@ import java.util.ArrayList;
 public class OCRService {
     private Tesseract tesseract;
 
-    @Value("${tesseract.datapath}")
-    private String dataPath;
-
-    @PostConstruct
-    public void init() {
+    public OCRService() {
         tesseract = new Tesseract();
-        tesseract.setDatapath(dataPath);
+        tesseract.setDatapath("/opt/homebrew/share/tessdata");
         tesseract.setLanguage("eng+kor");
         tesseract.setPageSegMode(6);  // 페이지 세그먼트 모드
         tesseract.setOcrEngineMode(1);  // OCR 엔진 모드 설정
