@@ -2,11 +2,13 @@ package group4.opensource_server.group.service;
 
 import group4.opensource_server.group.domain.Group;
 import group4.opensource_server.group.domain.GroupMembers;
+import group4.opensource_server.group.domain.TimeTables;
 import group4.opensource_server.group.dto.GroupKeyDto;
 import group4.opensource_server.group.dto.SuccessResponseDto;
 import group4.opensource_server.group.dto.UserInfoDto;
 import group4.opensource_server.group.repository.GroupMembersRepository;
 import group4.opensource_server.group.repository.GroupRepository;
+import group4.opensource_server.group.repository.TimeTablesRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +33,9 @@ public class LeaderService {
 
     @Autowired
     private GroupMembersRepository groupMembersRepository;
+
+    @Autowired
+    private TimeTablesRepository timeTablesRepository;
 
     public SuccessResponseDto deleteGroup(String groupKey, UserInfoDto user) {
         // 테스트코드
@@ -49,9 +55,13 @@ public class LeaderService {
         }
 
         int leaderId = group.getLeaderId();
+        int groupId = group.getGroupId();
 
         if (userId == leaderId) {
             groupRepository.deleteByGroupKey(groupKey);
+            timeTablesRepository.deleteByGroupId(groupId);
+            groupMembersRepository.deleteByGroupId(groupId);
+
             responseDto = new SuccessResponseDto(true);
         }
         else {
