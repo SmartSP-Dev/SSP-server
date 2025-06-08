@@ -17,4 +17,6 @@ public interface TimeTablesRepository extends JpaRepository<TimeTables, TimeTabl
     List<TimeTables> findByGroupIdAndDayOfWeekAndTimeBlock(int groupId, DayOfWeekEnum dayOfWeek, LocalTime timeBlock);
 
     int deleteByGroupIdAndMemberId(int groupId, int memberId);
+
+    void deleteByGroupId(int groupId);
 }
