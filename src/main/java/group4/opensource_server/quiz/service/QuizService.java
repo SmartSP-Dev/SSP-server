@@ -86,7 +86,9 @@ public class QuizService {
         }
 
         JSONObject result = new JSONObject();
-        result.put("quizzes", quizzes);
+        result.put("status", "success");
+        result.put("message", "퀴즈 생성 성공");
+        result.put("quizzes", quizzes);  // 이 배열은 비어 있어도 OK
         return result;
     }
 
