@@ -6,8 +6,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Table(name = "everytime_timetables")
@@ -17,13 +16,20 @@ public class EveryTimeTimetable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 해당 시간표를 등록한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 에브리타임에서 크롤링한 시간표 JSON을 그대로 문자열로 저장
     @Lob
     @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
     private String timetableJson;
+
+    /**
+     * 시간표 JSON을 업데이트합니다.
+     *
+     * @param timetableJson 새로운 시간표 JSON 문자열
+     */
+    public void updateTimetableJson(String timetableJson) {
+        this.timetableJson = timetableJson;
+    }
 }
