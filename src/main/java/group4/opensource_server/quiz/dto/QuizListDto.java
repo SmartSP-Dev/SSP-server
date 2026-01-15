@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuizListDto {
@@ -18,7 +17,6 @@ public class QuizListDto {
     private LocalDate createdAt;
     private Boolean isReviewed;
 
-
     public static QuizListDto fromEntity(Quiz quiz) {
         return new QuizListDto(
                 quiz.getId(),
@@ -26,8 +24,7 @@ public class QuizListDto {
                 quiz.getKeywords(),
                 quiz.getQuestionType().name(),
                 quiz.getCreatedAt(),
-                quiz.getStatus() == 3 // 상태가 3이면 복습 완료로 간주
-
+                quiz.isReviewed()
         );
     }
 }

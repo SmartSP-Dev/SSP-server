@@ -1,6 +1,5 @@
 package group4.opensource_server.calendar.domain;
 
-import group4.opensource_server.calendar.domain.EveryTimeTimetable;
 import group4.opensource_server.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

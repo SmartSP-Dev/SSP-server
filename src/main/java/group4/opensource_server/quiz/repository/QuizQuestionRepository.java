@@ -3,6 +3,9 @@ package group4.opensource_server.quiz.repository;
 import group4.opensource_server.quiz.domain.Quiz;
 import group4.opensource_server.quiz.domain.QuizQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,5 +19,8 @@ public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Long
 
     Optional<QuizQuestion> findByQuizAndQuizNumber(Quiz quiz, int quizNumber);
 
-    void deleteByQuiz(Quiz quiz);
+    // Bulk delete: 특정 퀴즈에 속한 모든 문제 삭제
+    @Modifying
+    @Query("DELETE FROM QuizQuestion qq WHERE qq.quiz = :quiz")
+    void deleteByQuiz(@Param("quiz") Quiz quiz);
 }

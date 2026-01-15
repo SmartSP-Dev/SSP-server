@@ -1,0 +1,61 @@
+springdoc:
+  server-url: http://localhost:8080
+
+# 임시 테스트용 설정
+kakao:
+  redirect_uri: http://localhost:8080/login/oauth2/code/kakao
+  api_key: test-kakao-key
+
+jwt:
+  secret_key: test-jwt-secret-key-for-local-development-minimum-256-bits-required-for-hs256-algorithm
+
+spring:
+  application:
+    name: opensource_server
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop  # 테스트용 - 재시작시 DB 초기화
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  # H2 인메모리 DB 사용 (MySQL 없이 테스트)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # H2 콘솔 활성화 (http://localhost:8080/h2-console)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+  ssl:
+    enabled: false
+  forward-headers-strategy: native
+
+apple:
+  team_id: test-team-id
+  key_id: test-key-id
+  client_id: test-client-id
+  redirect_uri: http://localhost:8080/login/oauth2/code/apple
+  private_key: test-private-key
+
+# GPT API - 실제 사용하려면 진짜 키 필요
+openai:
+  api:
+    key: sk-test-key-replace-with-real-key
+
+# Tesseract OCR 경로 (Mac 기준)
+tesseract:
+  datapath: /usr/local/share/tessdata

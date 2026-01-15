@@ -13,6 +13,6 @@ public class QuizStatusScheduler {
 
     @Scheduled(cron = "0 0 0 * * *") // 매일 자정
     public void runDailyQuizStatusUpdate() {
-        quizService.updateQuizStatusesForNextDay();
+        quizService.updateExpiredQuizStatuses();
     }
 }

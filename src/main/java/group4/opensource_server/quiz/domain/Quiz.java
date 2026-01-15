@@ -10,7 +10,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -38,10 +37,12 @@ public class Quiz {
 
     // 복습 상태: 1(처음), 2(복습 필요), 3(복습 완료)
     @Column(nullable = false)
-    private int status = 1;
+    @Builder.Default
+    private int status = QuizStatus.CREATED.getCode();
 
     // 복습 횟수 (0 → 1 → 2 → 종료)
     @Column(nullable = false)
+    @Builder.Default
     private int reviewCount = 0;
 
     // 마지막 복습 완료 날짜
@@ -58,5 +59,31 @@ public class Quiz {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();
+    }
+
+    // 비즈니스 메서드: 상태 변경
+    public void updateStatus(QuizStatus newStatus) {
+        this.status = newStatus.getCode();
+    }
+
+    // 비즈니스 메서드: 복습 완료 처리
+    public void completeReview() {
+        this.status = QuizStatus.REVIEWED.getCode();
+        this.lastReviewedAt = LocalDate.now();
+        this.reviewCount++;
+    }
+
+    // 비즈니스 메서드: 복습 필요 상태로 변경
+    public void markAsNeedReview() {
+        this.status = QuizStatus.NEED_REVIEW.getCode();
+    }
+
+    // 상태 확인 메서드
+    public boolean isReviewed() {
+        return this.status == QuizStatus.REVIEWED.getCode();
+    }
+
+    public QuizStatus getStatusEnum() {
+        return QuizStatus.fromCode(this.status);
     }
 }

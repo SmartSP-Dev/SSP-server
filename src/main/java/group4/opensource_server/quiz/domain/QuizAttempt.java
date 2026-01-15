@@ -9,7 +9,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -40,4 +39,9 @@ public class QuizAttempt {
     // 결과 리스트 (1:N)
     @OneToMany(mappedBy = "quizAttempt", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionResult> questionResults;
+
+    // 비즈니스 메서드: 점수 업데이트
+    public void updateScore(int score) {
+        this.score = score;
+    }
 }
