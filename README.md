@@ -94,75 +94,18 @@ SSP-server는 사용자 맞춤형 서비스를 제공하기 위해 데이터의 
 ### ERD (Entity Relationship Diagram)
 > 데이터베이스 설계 및 테이블 간 관계를 나타냅니다.
 
-![ERD](docs/images/erd.png)
-
-*이미지를 추가하려면 `docs/images/erd.png` 경로에 ERD 이미지를 저장하세요.*
+<img width="1322" height="670" alt="루디_ERD" src="https://github.com/user-attachments/assets/8940e4cc-b6c7-4fdc-9b87-b41e5b534190" />
 
 ---
 
 ### 시스템 구조도
 > 전체 시스템의 구성 요소 및 데이터 흐름을 나타냅니다.
 
-![System Architecture](docs/images/architecture.png)
-
-*이미지를 추가하려면 `docs/images/architecture.png` 경로에 구조도 이미지를 저장하세요.*
-
----
-
-## 🚀 시작하기
-
-### 사전 요구사항
-- Java 21
-- MySQL 8.x
-- Docker (선택사항)
-- Tesseract OCR (로컬 개발 시)
-
-### 환경 변수 설정
-```bash
-# application.yml 또는 환경 변수로 설정
-KAKAO_API_KEY=your_kakao_api_key
-KAKAO_REDIRECT_URI=your_redirect_uri
-OPENAI_API_KEY=your_openai_api_key
-JWT_SECRET_KEY=your_jwt_secret
-DATASOURCE_URL=jdbc:mysql://localhost:3306/ssp_db
-DATASOURCE_USERNAME=your_db_username
-DATASOURCE_PASSWORD=your_db_password
-```
-
-### 로컬 실행
-```bash
-# 1. 저장소 클론
-git clone https://github.com/SmartSP-Dev/SSP-server.git
-cd SSP-server
-
-# 2. 빌드
-./gradlew clean build
-
-# 3. 실행
-./gradlew bootRun
-```
-
-### Docker 실행
-```bash
-# Docker 이미지 빌드
-docker build -t ssp-server .
-
-# 컨테이너 실행
-docker run -d -p 8080:8080 \
-  -e KAKAO_API_KEY=your_key \
-  -e OPENAI_API_KEY=your_key \
-  ssp-server
-```
+<img width="707" height="483" alt="image" src="https://github.com/user-attachments/assets/03fd1cb3-7e13-4f25-a3df-fc9d75234fbb" />
 
 ---
 
 ## 📖 API 문서
-
-서버 실행 후 다음 URL에서 Swagger UI를 통해 API 문서를 확인할 수 있습니다:
-
-```
-http://localhost:8080/swagger-ui/index.html
-```
 
 ### 주요 API 엔드포인트
 
@@ -231,31 +174,7 @@ SSP-server/
 
 ---
 
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📝 라이선스
-
-This project is licensed under the MIT License.
-
----
-
 ## 👥 팀원
 
-- **Backend Developer**: [팀원 이름]
-- **Frontend Developer**: [팀원 이름]
-
----
-
-## 📞 문의
-
-프로젝트에 대한 문의사항이 있으시면 Issues를 통해 연락주세요.
-
-- GitHub: [SmartSP-Dev/SSP-server](https://github.com/SmartSP-Dev/SSP-server)
+- **Backend Developer**: 이재준, 이영재, 유성진
+- **Frontend Developer**: 황상환
