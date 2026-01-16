@@ -117,7 +117,7 @@ SSP-server는 사용자 맞춤형 서비스를 제공하기 위해 데이터의 
 
 #### 시간표 관리
 - `POST /calendar/timetable` - 에브리타임 시간표 크롤링 및 저장
-- `GET /calendar/timetable/me` - 저장된 시간표 조회
+- `GET /calendar/timetable` - 저장된 시간표 조회
 
 #### 인증
 - `POST /auth/kakao` - Kakao 로그인
