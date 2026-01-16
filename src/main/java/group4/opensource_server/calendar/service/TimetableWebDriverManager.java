@@ -11,67 +11,136 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Selenium WebDriver 관리 클래스
+ * Selenium WebDriver 관리 클래스 (Semaphore + ThreadLocal 패턴)
  *
- * <주요 기능>
- * 1. Singleton 패턴으로 WebDriver 인스턴스 관리 (메모리 최적화)
- * 2. Double-Checked Locking으로 스레드 안전성 확보
- * 3. Docker/Linux 환경에서의 Headless Chrome 실행 최적화
+ * <주요 개선사항>
+ * 1. Semaphore를 통한 동시 실행 개수 제한 (최대 3개)
+ * 2. ThreadLocal을 사용하여 각 스레드가 독립적인 WebDriver 인스턴스 보유
+ * 3. Race Condition 완전 해결 (각 스레드가 자기만의 브라우저 사용)
  *
- * <트러블슈팅>
- * - 문제1: 동시 요청 시 서버 자원 고갈 → Singleton 패턴으로 해결
- * - 문제2: Docker 환경 샌드박스 오류 → --no-sandbox 옵션
- * - 문제3: Docker 공유 메모리 부족 → --disable-dev-shm-usage 옵션
+ * <동작 원리>
+ * 1. acquire(): Semaphore에서 permit 획득 + 새 WebDriver 생성
+ * 2. 크롤링 작업 수행 (독립적인 WebDriver 사용)
+ * 3. release(): WebDriver 종료 + Semaphore permit 반환
+ *
+ * <메모리 관리>
+ * - 최대 3개의 WebDriver만 동시 실행 (300MB × 3 = 900MB)
+ * - 4번째 요청부터는 대기 (최대 30초)
+ * - 작업 완료 시 즉시 정리하여 메모리 반환
+ *
+ * <트러블슈팅 해결>
+ * ✅ 문제1: 동시 요청 시 서버 자원 고갈 → Semaphore로 개수 제한
+ * ✅ 문제2: Race Condition (URL 충돌) → ThreadLocal로 격리
+ * ✅ 문제3: Docker 환경 오류 → --no-sandbox, --disable-dev-shm-usage
  */
 @Slf4j
 @Component
 public class TimetableWebDriverManager {
 
     /**
-     * Singleton 패턴을 위한 WebDriver 인스턴스
-     * - static으로 선언하여 전체 애플리케이션에서 1개만 생성
-     * - 메모리 최적화: 여러 사용자가 동시에 요청해도 브라우저는 1개만 실행
+     * 동시 실행 개수를 제어하는 Semaphore
+     * - permits: 3개 (최대 3명이 동시에 크롤링 가능)
+     * - 4번째 사람은 대기 줄에 섬
      */
-    private static WebDriver driver;
+    private final Semaphore semaphore = new Semaphore(TimetableConstants.MAX_CONCURRENT_CRAWLING);
 
     /**
-     * ReentrantLock: 스레드 안전성 확보를 위한 락
-     * - Double-Checked Locking 패턴 구현에 사용
-     * - synchronized 키워드보다 세밀한 제어 가능
+     * 각 스레드가 독립적인 WebDriver 인스턴스를 보유
+     * - Thread-1: 자기만의 브라우저 인스턴스
+     * - Thread-2: 자기만의 브라우저 인스턴스
+     * - Thread-3: 자기만의 브라우저 인스턴스
+     * → 서로 간섭 없이 독립적으로 크롤링
      */
-    private static final Lock lock = new ReentrantLock();
+    private final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
     /**
-     * WebDriver 인스턴스를 반환 (Singleton 패턴 + Double-Checked Locking)
+     * WebDriver를 획득합니다 (Semaphore permit 획득 + WebDriver 생성).
      *
-     * <Double-Checked Locking 동작 원리>
-     * 1. 첫 번째 체크 (lock 없이): 이미 생성되었으면 바로 반환 (빠른 경로)
-     * 2. lock 획득: 여러 스레드가 동시 진입 방지
-     * 3. 두 번째 체크 (lock 내부): 락 대기 중 다른 스레드가 생성했을 가능성 체크
-     * 4. 최초 1회만 생성
+     * <사용 예시>
+     * ```java
+     * webDriverManager.acquire();
+     * try {
+     *     WebDriver driver = webDriverManager.getDriver();
+     *     driver.get("https://example.com");
+     *     // 크롤링 작업
+     * } finally {
+     *     webDriverManager.release(); // 반드시 호출!
+     * }
+     * ```
      *
-     * @return 공유되는 WebDriver 인스턴스
-     * @throws WebDriverInitializationException WebDriver 초기화 실패 시
+     * @throws InterruptedException Semaphore 대기 중 인터럽트 발생 시
+     * @throws WebDriverInitializationException 30초 내에 permit 획득 실패 시
+     */
+    public void acquire() throws InterruptedException {
+        log.debug("WebDriver 획득 시도 (대기 중인 permits: {})", semaphore.availablePermits());
+
+        // Semaphore에서 permit 획득 시도 (최대 30초 대기)
+        boolean acquired = semaphore.tryAcquire(
+                TimetableConstants.ACQUIRE_TIMEOUT_SECONDS,
+                TimeUnit.SECONDS
+        );
+
+        if (!acquired) {
+            log.error("WebDriver 획득 실패: {}초 타임아웃", TimetableConstants.ACQUIRE_TIMEOUT_SECONDS);
+            throw new WebDriverInitializationException(
+                    "크롤링 작업이 너무 많아 대기 시간 초과되었습니다. 잠시 후 다시 시도해주세요."
+            );
+        }
+
+        try {
+            // ThreadLocal에 새로운 WebDriver 인스턴스 생성 및 저장
+            WebDriver driver = initializeDriver();
+            driverThreadLocal.set(driver);
+            log.info("WebDriver 획득 완료 (현재 활성: {}개)",
+                    TimetableConstants.MAX_CONCURRENT_CRAWLING - semaphore.availablePermits());
+
+        } catch (Exception e) {
+            // WebDriver 생성 실패 시 permit 반환
+            semaphore.release();
+            log.error("WebDriver 초기화 실패, permit 반환", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 현재 스레드의 WebDriver를 반환합니다.
+     *
+     * @return 현재 스레드에 할당된 WebDriver 인스턴스
+     * @throws IllegalStateException acquire()를 먼저 호출하지 않은 경우
      */
     public WebDriver getDriver() {
-        // 첫 번째 체크: 락 없이 빠르게 확인
+        WebDriver driver = driverThreadLocal.get();
         if (driver == null) {
-            lock.lock();
-            try {
-                // 두 번째 체크: Double-Checked Locking
-                if (driver == null) {
-                    driver = initializeDriver();
-                    log.info("WebDriver 초기화 완료 (Singleton)");
-                }
-            } finally {
-                lock.unlock();
-            }
+            throw new IllegalStateException("acquire()를 먼저 호출해야 합니다");
         }
         return driver;
+    }
+
+    /**
+     * WebDriver를 해제합니다 (WebDriver 종료 + Semaphore permit 반환).
+     *
+     * <주의사항>
+     * - 반드시 finally 블록에서 호출하여 자원 누수 방지
+     * - release() 누락 시 다른 사용자들이 영원히 대기하게 됨
+     */
+    public void release() {
+        WebDriver driver = driverThreadLocal.get();
+        if (driver != null) {
+            try {
+                driver.quit();
+                log.debug("WebDriver 종료 완료");
+            } catch (Exception e) {
+                log.warn("WebDriver 종료 중 예외 발생 (무시)", e);
+            } finally {
+                driverThreadLocal.remove();
+                semaphore.release();
+                log.info("WebDriver 반환 완료 (사용 가능: {}개)", semaphore.availablePermits());
+            }
+        }
     }
 
     /**
@@ -82,7 +151,7 @@ public class TimetableWebDriverManager {
      */
     private WebDriver initializeDriver() {
         try {
-            // Chrome Driver 자동 설정 (운영체제에 맞는 버전 자동 다운로드)
+            // Chrome Driver 자동 설정
             io.github.bonigarcia.wdm.WebDriverManager.chromedriver().setup();
 
             ChromeOptions options = createChromeOptions();
@@ -114,7 +183,7 @@ public class TimetableWebDriverManager {
                 "--remote-allow-origins=*"
         );
 
-        // 임시 사용자 프로필 디렉토리 생성
+        // 임시 사용자 프로필 디렉토리 생성 (테스트 격리)
         try {
             Path tmpProfile = Files.createTempDirectory("chrome-user-data-");
             options.addArguments("--user-data-dir=" + tmpProfile.toAbsolutePath());
@@ -128,21 +197,11 @@ public class TimetableWebDriverManager {
     }
 
     /**
-     * WebDriver를 종료합니다.
-     * 애플리케이션 종료 시 또는 테스트 후 호출
+     * 현재 활성화된 WebDriver 개수를 반환합니다 (모니터링용).
+     *
+     * @return 사용 중인 WebDriver 개수
      */
-    public void quitDriver() {
-        if (driver != null) {
-            lock.lock();
-            try {
-                if (driver != null) {
-                    driver.quit();
-                    driver = null;
-                    log.info("WebDriver 종료 완료");
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
+    public int getActiveDriverCount() {
+        return TimetableConstants.MAX_CONCURRENT_CRAWLING - semaphore.availablePermits();
     }
 }

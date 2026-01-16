@@ -1,4 +1,4 @@
-name: Build and Deploy to EC2 via Docker
+name: Continuous Integration (Build Only)
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
       DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
       DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
       DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-      DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
+      # DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
@@ -35,84 +35,92 @@ jobs:
       - name: Build with Gradle (skip tests)
         run: ./gradlew clean build -x test
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # ========================================
+      # Docker 이미지 빌드 & 푸시 (주석 처리됨)
+      # 배포가 필요할 경우 아래 주석을 해제하세요
+      # ========================================
+      # - name: Log in to Docker Hub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      #
+      # - name: Build and Push Docker image
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: .
+      #     file: Dockerfile
+      #     push: true
+      #     tags: ${{ secrets.DOCKER_IMAGE_NAME }}:latest
 
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_IMAGE_NAME }}:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      EC2_HOST: ${{ secrets.EC2_HOST }}
-      EC2_USER: ${{ secrets.EC2_USER }}
-      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-      DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
-      KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
-      KAKAO_API_KEY: ${{ secrets.KAKAO_API_KEY }}
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
-      DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-      DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-    steps:
-      - name: Deploy Docker image on EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          request_pty: true
-          script: |
-            #!/bin/bash
-            echo "Stopping and removing old container..."
-            docker rm -f opensource_server || true
-            
-            echo "Pruning unused Docker objects (images, containers, volumes)…"
-            docker system prune -a -f
-            
-            echo "Pulling latest Docker image..."
-            docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:latest
-            
-            echo "Starting new container..."
-            
-            cat <<EOF > /tmp/last_docker_run.sh
-            docker run -d --name opensource_server -p 8080:8080 \
-              -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
-              -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
-              -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
-              -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-              -e APPLE_TEAM_ID="${{secrets.APPLE_TEAM_ID}}" \
-              -e APPLE_KEY_ID="${{secrets.APPLE_KEY_ID}}" \
-              -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
-              -e APPLE_REDIRECT_URI="${{secrets.APPLE_REDIRECT_URI}}" \
-              -e APPLE_PRIVATE_KEY="${{secrets.APPLE_PRIVATE_KEY}}" \
-              -e JWT_SECRET_KEY="${{secrets.JWT_SECRET_KEY}}" \
-              -e DATASOURCE_URL="${{secrets.DATASOURCE_URL}}" \
-              -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
-              -e DATASOURCE_PASSWORD="${{secrets.DATASOURCE_PASSWORD}}" \
-              -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
-              -e SSL_ENABLED=true \
-              -e SSL_KEY=${{secrets.SSL_KEY}} \
-              ${{ secrets.DOCKER_IMAGE_NAME }}:latest
-            EOF
-            
-            chmod +x /tmp/last_docker_run.sh
-
-            echo "Contents of the generated script:"
-            cat /tmp/last_docker_run.sh
-
-            echo "Executing the run script..."
-            /tmp/last_docker_run.sh
-            
-            echo "Deployment complete."
-            exit 0
+  # ========================================
+  # EC2 배포 Job (주석 처리됨)
+  # 서버 배포가 필요할 경우 아래 주석을 해제하세요
+  # ========================================
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   env:
+  #     EC2_HOST: ${{ secrets.EC2_HOST }}
+  #     EC2_USER: ${{ secrets.EC2_USER }}
+  #     EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+  #     DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
+  #     KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+  #     KAKAO_API_KEY: ${{ secrets.KAKAO_API_KEY }}
+  #     JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+  #     DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
+  #     DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
+  #     DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
+  #   steps:
+  #     - name: Deploy Docker image on EC2
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.EC2_HOST }}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         port: 22
+  #         request_pty: true
+  #         script: |
+  #           #!/bin/bash
+  #           echo "Stopping and removing old container..."
+  #           docker rm -f opensource_server || true
+  #
+  #           echo "Pruning unused Docker objects (images, containers, volumes)…"
+  #           docker system prune -a -f
+  #
+  #           echo "Pulling latest Docker image..."
+  #           docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+  #
+  #           echo "Starting new container..."
+  #
+  #           cat <<EOF > /tmp/last_docker_run.sh
+  #           docker run -d --name opensource_server -p 8080:8080 \
+  #             -v /etc/letsencrypt/keystore.p12:/etc/letsencrypt/keystore.p12 \
+  #             -e KAKAO_REDIRECT_URI="${{secrets.KAKAO_REDIRECT_URI}}" \
+  #             -e KAKAO_API_KEY="${{secrets.KAKAO_API_KEY}}" \
+  #             -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+  #             -e APPLE_TEAM_ID="${{secrets.APPLE_TEAM_ID}}" \
+  #             -e APPLE_KEY_ID="${{secrets.APPLE_KEY_ID}}" \
+  #             -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
+  #             -e APPLE_REDIRECT_URI="${{secrets.APPLE_REDIRECT_URI}}" \
+  #             -e APPLE_PRIVATE_KEY="${{secrets.APPLE_PRIVATE_KEY}}" \
+  #             -e JWT_SECRET_KEY="${{secrets.JWT_SECRET_KEY}}" \
+  #             -e DATASOURCE_URL="${{secrets.DATASOURCE_URL}}" \
+  #             -e DATASOURCE_USERNAME="${{secrets.DATASOURCE_USERNAME}}" \
+  #             -e DATASOURCE_PASSWORD="${{secrets.DATASOURCE_PASSWORD}}" \
+  #             -e TESSERACT_DATAPATH="${{secrets.TESSERACT_DATAPATH}}" \
+  #             -e SSL_ENABLED=true \
+  #             -e SSL_KEY=${{secrets.SSL_KEY}} \
+  #             ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+  #           EOF
+  #
+  #           chmod +x /tmp/last_docker_run.sh
+  #
+  #           echo "Contents of the generated script:"
+  #           cat /tmp/last_docker_run.sh
+  #
+  #           echo "Executing the run script..."
+  #           /tmp/last_docker_run.sh
+  #
+  #           echo "Deployment complete."
+  #           exit 0
