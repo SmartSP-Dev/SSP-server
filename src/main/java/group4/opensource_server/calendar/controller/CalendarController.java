@@ -32,7 +32,7 @@ public class CalendarController {
 
     @Operation(summary = "저장된 시간표 조회",
             description = "로그인한 사용자의 저장된 시간표를 반환합니다.")
-    @GetMapping("/timetable/me")
+    @GetMapping("/timetable")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TimetableResponseDto> getSavedTimetable() {
         User user = getCurrentUser();
